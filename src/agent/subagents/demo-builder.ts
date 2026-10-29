@@ -7,6 +7,7 @@ import { runSubagent } from "./pi-run.ts";
 import type { DemoResult } from "../../core/contracts.ts";
 import { getHeadless, type DemoRunResult, type HeadlessApi } from "./headless.ts";
 import { healToolRecord } from "../tools/heal.ts";
+import { learningLanguageInstructions, type Language } from "../../core/language.ts";
 
 /**
  * The demo-builder sub-agent (vision §2 interactive demos + §2.5 "sub-agents
@@ -31,6 +32,7 @@ export interface DemoBuilderInput {
 }
 
 export interface DemoBuilderOptions {
+	learningLanguage?: Language;
 	/** Test seam: scripted engine; production uses the demoBuilder role. */
 	engine?: PiEngine;
 	headless?: HeadlessApi;
@@ -207,7 +209,7 @@ export async function runDemoBuilder(input: DemoBuilderInput, opts: DemoBuilderO
 		const result = await runSubagent(Object.values(createDemoBuilderTools(state, headless, opts.onActivity)), {
 			role: "demoBuilder",
 			engine: opts.engine,
-			systemPrompt: INSTRUCTIONS,
+			systemPrompt: INSTRUCTIONS + learningLanguageInstructions(opts.learningLanguage),
 			prompt,
 			maxTurns: opts.maxSteps ?? 24,
 			abortSignal: opts.abortSignal,

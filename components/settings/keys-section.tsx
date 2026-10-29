@@ -41,6 +41,7 @@ import { ProviderMenuList } from "./model-menu.tsx";
 import { MenuShell } from "@/components/menu-shell";
 import { notifySettingsSaved } from "@/components/settings-signal";
 import { DictationLanguageSetting } from "@/components/dictation-language";
+import { useI18n, I18nText } from "@/components/i18n";
 
 /** One pi-ai provider with plain API-key auth (the Platform seam —
  *  derived from pi-ai's own env-key table; no drift possible). */
@@ -183,6 +184,7 @@ function KeyTableRow({
 	onCancel: () => void;
 	testid: string;
 }) {
+	const { t: tx } = useI18n();
 	const envOwned = status.source === "env";
 	const [value, setValue] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -214,8 +216,8 @@ function KeyTableRow({
 						onKeyDown={(e) => {
 							if (e.key === "Enter") void save();
 						}}
-						placeholder="Paste key…"
-						aria-label={`${label} key`}
+						placeholder={tx("Paste key…")}
+						aria-label={tx("{provider} key", { provider: label })}
 						data-testid={`${testid}-input`}
 						disabled={busy}
 						autoFocus
@@ -227,18 +229,14 @@ function KeyTableRow({
 						disabled={busy || !value.trim()}
 						data-testid={`${testid}-save`}
 						className="shrink-0 text-xs text-foreground underline-offset-2 hover:underline disabled:text-muted-foreground/40 disabled:no-underline"
-					>
-						Save
-					</button>
+					>{tx("Save")}</button>
 					<button
 						type="button"
 						onClick={onCancel}
 						disabled={busy}
 						data-testid={`${testid}-cancel`}
 						className="shrink-0 text-xs text-muted-foreground/70 underline-offset-2 hover:text-foreground hover:underline"
-					>
-						Cancel
-					</button>
+					>{tx("Cancel")}</button>
 					{status.present && status.source === "file" && onDelete && (
 						<button
 							type="button"
@@ -246,9 +244,7 @@ function KeyTableRow({
 							disabled={busy}
 							data-testid={`${testid}-delete`}
 							className="shrink-0 text-xs text-muted-foreground/70 underline-offset-2 hover:text-red-500 hover:underline"
-						>
-							Delete
-						</button>
+						>{tx("Delete")}</button>
 					)}
 				</div>
 				{error && (
@@ -280,9 +276,7 @@ function KeyTableRow({
 							rel="noreferrer"
 							onClick={(e) => e.stopPropagation()}
 							className="text-[10px] text-muted-foreground/60 underline-offset-2 hover:text-foreground hover:underline"
-						>
-							key ↗
-						</a>
+						>{tx("key ↗")}</a>
 					)}
 					<span data-testid={`${testid}-status`} className="font-mono text-[11px] text-muted-foreground">
 						{keyStatusLine(status)}
@@ -307,6 +301,7 @@ function AddProviderRow({
 	addable: ProviderKeyInfo[];
 	onPick: (p: ProviderKeyInfo) => void;
 }) {
+	const { t: tx } = useI18n();
 	const [open, setOpen] = useState(false);
 	const anchorRef = useRef<HTMLDivElement>(null);
 
@@ -341,7 +336,7 @@ function AddProviderRow({
 				onClick={() => setOpen((v) => !v)}
 				className="flex w-full items-center justify-between gap-3 rounded-sm px-1 py-1.5 text-left font-ui text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
 			>
-				<span>+ Add a provider</span>
+				<span>{tx("+ Add a provider")}</span>
 				{addable.length > 0 && <span className="font-mono text-[11px]">{addable.length}</span>}
 			</button>
 			{open && (
@@ -375,6 +370,7 @@ export function KeysSection({
 }: {
 	initialRow?: string;
 }) {
+	const { t: tx } = useI18n();
 	const [statuses, setStatuses] = useState<AuthKeyStatus[] | null>(null);
 	const [providers, setProviders] = useState<ProviderKeyInfo[] | undefined>(undefined);
 	const [loading, setLoading] = useState(true);
@@ -475,7 +471,7 @@ export function KeysSection({
 	}
 
 	if (loading || statuses === null) {
-		return <p className="px-6 py-5 text-xs text-muted-foreground/70">Loading keys…</p>;
+		return <p className="px-6 py-5 text-xs text-muted-foreground/70">{tx("Loading keys…")}</p>;
 	}
 
 	const { providerRows, toolRows, unknownRows, addable } = classifyKeys(statuses, providers);
@@ -491,7 +487,7 @@ export function KeysSection({
 
 	return (
 		<>
-			<SettingsGroup label="Model API keys" testid="group-provider-keys">
+			<SettingsGroup label={tx("Model API keys")} testid="group-provider-keys">
 				{providerRows.map((status) => (
 					<KeyTableRow
 						key={status.id}
@@ -571,7 +567,7 @@ export function KeysSection({
 				</div>}
 			</SettingsGroup>
 
-			<SettingsGroup label="Subscriptions" testid="group-subscriptions">
+			<SettingsGroup label={tx("Subscriptions")} testid="group-subscriptions">
 				<SubscriptionConnections />
 			</SettingsGroup>
 
@@ -600,14 +596,12 @@ export function KeysSection({
 				))}
 				{label === "Dictation" && <>
 					<DictationLanguageSetting />
-					<p data-testid="dictation-setup-hint" className="px-1 text-[11px] leading-relaxed text-muted-foreground/70">
-						Create a <a
+					<p data-testid="dictation-setup-hint" className="px-1 text-[11px] leading-relaxed text-muted-foreground/70"><I18nText message="Create a" />{" "}<a
 							href="https://console.deepgram.com/"
 							target="_blank"
 							rel="noreferrer"
 							className="underline underline-offset-2 hover:text-foreground"
-						>Deepgram API key</a> with the Member role or higher, then add it above.
-					</p>
+						>{tx("Deepgram API key")}</a>{" "}<I18nText message="with the Member role or higher, then add it above." /></p>
 				</>}
 			</SettingsGroup>)}
 
@@ -628,6 +622,7 @@ function AddProviderEditor({
 	onCancel: () => void;
 	error: string | null;
 }) {
+	const { t: tx } = useI18n();
 	const [value, setValue] = useState("");
 	return (
 		<>
@@ -638,8 +633,8 @@ function AddProviderEditor({
 				onKeyDown={(e) => {
 					if (e.key === "Enter" && value.trim()) onSave(value);
 				}}
-				placeholder="Paste key…"
-				aria-label={`${provider.label} key`}
+				placeholder={tx("Paste key…")}
+				aria-label={tx("{provider} key", { provider: provider.label })}
 				data-testid={`key-${provider.id}-input`}
 				autoFocus
 				className="h-7 min-w-0 flex-1 rounded-sm border border-border bg-background px-1.5 font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-muted-foreground/50"
@@ -650,17 +645,13 @@ function AddProviderEditor({
 				disabled={!value.trim()}
 				data-testid={`key-${provider.id}-save`}
 				className="shrink-0 text-xs text-foreground underline-offset-2 hover:underline disabled:text-muted-foreground/40 disabled:no-underline"
-			>
-				Save
-			</button>
+			>{tx("Save")}</button>
 			<button
 				type="button"
 				onClick={onCancel}
 				data-testid={`key-${provider.id}-cancel`}
 				className="shrink-0 text-xs text-muted-foreground/70 underline-offset-2 hover:text-foreground hover:underline"
-			>
-				Cancel
-			</button>
+			>{tx("Cancel")}</button>
 			{error && (
 				<p role="alert" className="w-full pl-0 text-xs text-red-500" data-testid={`key-${provider.id}-error`}>
 					{error}

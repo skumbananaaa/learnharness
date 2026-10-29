@@ -8,6 +8,7 @@ import { formatTokens } from "@/components/usage-format";
 import { Hint } from "@/components/ui/hint";
 import { timeAgo } from "@/components/sidebar";
 import { resolveSettings } from "@/src/core";
+import { useI18n, I18nText } from "@/components/i18n";
 
 /**
  * The extraction-coverage surfaces (extraction-UX redesign, owner-locked
@@ -183,25 +184,22 @@ export function CoverageMenuBody({
 	extracting: boolean;
 	onExtract: () => void;
 }) {
+	const { t: tx } = useI18n();
 	const busy = coverage.running || extracting;
 	const complete = coverage.uncoveredTokens === 0 && coverage.uncoveredCount === 0;
 	return (
 		<div data-testid="ctx-coverage" className="flex flex-col gap-1 px-2.5 pt-1 pb-2">
 			{busy ? (
 				<span className="flex items-center gap-1.5 text-muted-foreground" data-testid="ctx-coverage-running">
-					<span className="size-1.5 animate-pulse rounded-full bg-foreground/70" aria-hidden />
-					extracting…
-				</span>
+					<span className="size-1.5 animate-pulse rounded-full bg-foreground/70" aria-hidden />{tx("extracting…")}</span>
 			) : complete ? (
-				<span className="text-muted-foreground">fully extracted</span>
+				<span className="text-muted-foreground">{tx("fully extracted")}</span>
 			) : (
 				<span className="flex flex-col">
 					<span className="tabular-nums text-foreground">
-						{formatTokens(coverage.uncoveredTokens)} tok uncovered
-					</span>
+						{formatTokens(coverage.uncoveredTokens)}{" "}<I18nText message="tok uncovered" /></span>
 					<span className="tabular-nums text-muted-foreground">
-						{coverage.uncoveredCount} message{coverage.uncoveredCount === 1 ? "" : "s"} unextracted
-					</span>
+						{coverage.uncoveredCount} message{coverage.uncoveredCount === 1 ? "" : "s"}{" "}<I18nText message="unextracted" /></span>
 				</span>
 			)}
 			<button
@@ -211,7 +209,7 @@ export function CoverageMenuBody({
 				disabled={busy || complete}
 				className="flex items-center justify-center rounded-lg border px-2 py-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-40 disabled:hover:bg-transparent"
 			>
-				{busy ? "Running" : "Extract"}
+				{busy ? tx("Running") : tx("Extract")}
 			</button>
 		</div>
 	);
@@ -241,6 +239,7 @@ export function ringFill(uncoveredTokens: number, chunkTokens: number): number {
  * threshold/kill-switch re-read live).
  */
 export function CoverageRing({ chatId, refreshKey = 0 }: { chatId: string; refreshKey?: number }) {
+	const { t: tx } = useI18n();
 	const [graph, setGraph] = useState<GraphRead | null>(null);
 	const [coverage, setCoverage] = useState<SessionCoverage | null>(null);
 	const [open, setOpen] = useState(false);
@@ -301,7 +300,7 @@ export function CoverageRing({ chatId, refreshKey = 0 }: { chatId: string; refre
 		<div ref={rootRef} className="lh-no-drag relative shrink-0">
 			<Hint
 				// Trimmed (owner, subtlety round 2026-09-25).
-				label="How much of this session isn't mapped yet"
+				label={tx("How much of this session isn't mapped yet")}
 				side="bottom"
 			>
 				<button
@@ -359,46 +358,42 @@ export function CoverageRingGlyph({ fill, running }: { fill: number; running: bo
  *  covered/uncovered tokens, message coverage, the threshold, the last
  *  fold's age. */
 export function CoverageRingDetail({ coverage, chunkTokens }: { coverage: SessionCoverage; chunkTokens: number }) {
+	const { t: tx } = useI18n();
 	return (
 		<>
-			<div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-				Extraction coverage
-			</div>
+			<div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{tx("Extraction coverage")}</div>
 			<div className="flex flex-col gap-1 text-muted-foreground">
 				<div className="flex justify-between gap-2">
-					<span>Uncovered</span>
+					<span>{tx("Uncovered")}</span>
 					<span className="tabular-nums text-card-foreground">
-						{formatTokens(coverage.uncoveredTokens)} tokens
-					</span>
+						{formatTokens(coverage.uncoveredTokens)}{" "}<I18nText message="tokens" /></span>
 				</div>
 				<div className="flex justify-between gap-2">
-					<span>Covered</span>
+					<span>{tx("Covered")}</span>
 					<span className="tabular-nums text-card-foreground">
-						{formatTokens(coverage.coveredTokens)} tokens
-					</span>
+						{formatTokens(coverage.coveredTokens)}{" "}<I18nText message="tokens" /></span>
 				</div>
 				<div className="flex justify-between gap-2">
-					<span>Messages</span>
+					<span>{tx("Messages")}</span>
 					<span className="tabular-nums text-card-foreground">
 						{coverage.coveredCount} / {coverage.totalMessages}
 					</span>
 				</div>
 				<div className="flex justify-between gap-2">
-					<span>Chunk threshold</span>
+					<span>{tx("Chunk threshold")}</span>
 					<span className="tabular-nums text-card-foreground">
-						{formatTokens(chunkTokens)} tokens
-					</span>
+						{formatTokens(chunkTokens)}{" "}<I18nText message="tokens" /></span>
 				</div>
 				<div className="flex justify-between gap-2">
-					<span>Last extraction</span>
+					<span>{tx("Last extraction")}</span>
 					<span className="tabular-nums text-card-foreground">
 						{coverage.lastFoldedAt ? timeAgo(coverage.lastFoldedAt) : "—"}
 					</span>
 				</div>
 				{coverage.running && (
 					<div className="flex justify-between gap-2" data-testid="coverage-ring-running">
-						<span>Status</span>
-						<span className="text-card-foreground">extracting…</span>
+						<span>{tx("Status")}</span>
+						<span className="text-card-foreground">{tx("extracting…")}</span>
 					</div>
 				)}
 			</div>

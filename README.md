@@ -51,6 +51,8 @@ Future teaching sessions can read the graph instead of starting from scratch. Pr
 
 Add your provider API key and choose your models, then start a session with what you want to understand. LearnHarness supports 30+ provider options, including OpenAI, Anthropic, Google, DeepSeek, and OpenRouter. Optional dictation and web search use separate service keys.
 
+**Languages:** In **Settings → General**, choose **Interface language** for menus and controls and **Learning language** for teaching and practice. English and Svenska are available independently. Interface changes apply immediately; learning-language changes apply from the next response. Existing learning records and the separate dictation language are preserved. See the [localization guide](docs/localization.md).
+
 All three platforms support in-app updates.
 
 **Dictation:** Create a [Deepgram API key](https://console.deepgram.com/) with the **Member role or higher** ([required for token minting](https://developers.deepgram.com/reference/auth/tokens/grant)) and add it under **Settings → Providers → Dictation**. Choose the language below the key; **Multilingual** supports automatic recognition and mixed-language speech. A `403 Insufficient permissions` error during token minting can indicate an insufficient key role.

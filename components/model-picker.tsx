@@ -12,6 +12,7 @@ import { notifySettingsSaved, useSettingsSaved } from "@/components/settings-sig
 import { useModelCatalog } from "@/components/model-catalog";
 export { useModelCatalog } from "@/components/model-catalog";
 import { defaultOrderLevel, populateLevel, THINKING_LABEL } from "@/components/thinking-default";
+import { useI18n } from "@/components/i18n";
 
 /** provider:id → known contextWindow over the cached catalog, mirroring
  * the server's catalogContextLimits join. CLI aliases have no global
@@ -38,6 +39,7 @@ export function catalogLimits(catalog: Pick<ModelCatalogResponse, "models">): Ma
  * no-factory-fallback language: the UI never presents a default model).
  */
 export function ModelControl({ chatId, onModelChange }: { chatId?: string; onModelChange?: (model: string | undefined) => void }) {
+	const { t: tx } = useI18n();
 	const { catalog, refresh } = useModelCatalog();
 	const [models, setModels] = useState<ModelsSettings | undefined>();
 	// A successful read with no settings is a legacy session; undefined
@@ -275,7 +277,7 @@ export function ModelControl({ chatId, onModelChange }: { chatId?: string; onMod
 	return (
 		<div ref={containerRef} className="relative flex items-center gap-1.5" data-testid="model-control">
 			<Hint
-				label={effectiveId ? `${effectiveProvider ? `${effectiveProvider}:` : ""}${effectiveId}` : "Model selector"}
+				label={effectiveId ? `${effectiveProvider ? `${effectiveProvider}:` : ""}${effectiveId}` : tx("Model selector")}
 				action="open-model-picker"
 				side="bottom"
 			>
@@ -298,7 +300,7 @@ export function ModelControl({ chatId, onModelChange }: { chatId?: string; onMod
 				// "Thinking" + its real shortcut via the registry (owner interlude
 				// 2026-09-25): ⇧⇥ cycles the level, so "Thinking (⇧⇥)" —
 				// rebind-live like every Hint suffix.
-				label="Thinking"
+				label={tx("Thinking")}
 				action="cycle-thinking"
 				side="bottom"
 			>
@@ -337,7 +339,7 @@ export function ModelControl({ chatId, onModelChange }: { chatId?: string; onMod
 					preferredSide="up"
 					menuClass="flex w-[22rem] flex-col rounded-xl border bg-card p-2 text-xs shadow-xl"
 				>
-					{error && <div className="mb-1.5 text-destructive">{error}</div>}
+					{error && <div className="mb-1.5 text-destructive">{tx(error)}</div>}
 					<ModelMenuList
 						models={catalog?.models}
 						effectiveId={effectiveId}
@@ -365,10 +367,10 @@ export function ModelControl({ chatId, onModelChange }: { chatId?: string; onMod
 						levels={catalog ? levels : []}
 						effectiveLevel={effectiveLevel}
 						onPick={(level) => apply(effectiveProvider ?? "", effectiveId ?? "", level as ThinkingLevel)}
-						empty={catalog ? (effectiveId ? `${prettyModel(effectiveId)} has no thinking levels.` : "Pick a model first.") : "Loading…"}
+						empty={catalog ? (effectiveId ? tx("{model} has no thinking levels.", { model: prettyModel(effectiveId) }) : tx("Pick a model first.")) : tx("Loading…")}
 						footer="Levels this model actually supports"
 					/>
-					{error && <div className="mt-1 text-destructive">{error}</div>}
+					{error && <div className="mt-1 text-destructive">{tx(error)}</div>}
 				</MenuShell>
 			)}
 		</div>

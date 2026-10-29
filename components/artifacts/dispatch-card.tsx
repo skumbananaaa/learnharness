@@ -6,6 +6,7 @@ import { JobsContext } from "@/components/jobs-context";
 import { ChatActionsContext } from "@/components/chat";
 import { isModelsRefusal, isProviderKeyRefusal, type JobKind, type JobRecord } from "@/src/core";
 import { BrailleSpinner } from "@/components/braille-spinner";
+import { useI18n } from "@/components/i18n";
 
 /**
  * The dispatch card (contracts.ts "THE ASYNC PROTOCOL" §4): the tool-call
@@ -27,9 +28,10 @@ const KIND_LABEL: Record<JobKind, string> = {
 };
 
 export function DispatchCard({ toolCallId, kind }: { toolCallId: string; kind: JobKind }) {
+	const { t: tx } = useI18n();
 	const jobs = useContext(JobsContext);
 	const job = jobs.find((j) => j.toolCallId === toolCallId) ?? null;
-	const label = KIND_LABEL[kind];
+	const label = tx(KIND_LABEL[kind]);
 
 	if (!job || job.status === "running") {
 		return <DispatchActivityCard job={job} label={label} />;
@@ -54,13 +56,14 @@ export function DispatchCard({ toolCallId, kind }: { toolCallId: string; kind: J
 		>
 			{failed ? <XIcon className="size-3.5 text-red-500" /> : <CheckIcon className="size-3.5" />}
 			<span className="font-medium uppercase tracking-wide">{label}</span>
-			<span>{failed ? "failed" : "finished"}</span>
+			<span>{failed ? tx("failed") : tx("finished")}</span>
 		</div>
 	);
 }
 
 /** The refused card: quiet info tone — nothing red, nothing "failed". */
 function DispatchRefusedCard({ label, line, button }: { label: string; line: string; button: string }) {
+	const { t: tx } = useI18n();
 	const ctx = useContext(ChatActionsContext);
 	return (
 		<div
@@ -69,7 +72,7 @@ function DispatchRefusedCard({ label, line, button }: { label: string; line: str
 		>
 			<SettingsIcon className="size-3.5" />
 			<span className="font-medium uppercase tracking-wide">{label}</span>
-			<span>{line}</span>
+			<span>{tx(line)}</span>
 			{ctx && (
 				<button
 					type="button"
@@ -77,7 +80,7 @@ function DispatchRefusedCard({ label, line, button }: { label: string; line: str
 					onClick={ctx.openSetup}
 					className="ml-1 rounded-sm border border-border bg-card px-2 py-0.5 font-ui normal-case tracking-normal text-foreground transition-colors hover:border-muted-foreground/50"
 				>
-					{button}
+					{tx(button)}
 				</button>
 			)}
 		</div>
@@ -85,6 +88,7 @@ function DispatchRefusedCard({ label, line, button }: { label: string; line: str
 }
 
 function DispatchActivityCard({ job, label }: { job: JobRecord | null; label: string }) {
+	const { t: tx } = useI18n();
 	// Elapsed from createdAt — jobs appear here only via the jobs feed (post-mount),
 	// so no SSR/hydration mismatch.
 	const elapsed =
@@ -99,19 +103,17 @@ function DispatchActivityCard({ job, label }: { job: JobRecord | null; label: st
 				    the Braille spinner replaces the pulsing dot — one indicator
 				    everywhere. This is the ONLY dispatch-card change; the card's
 				    shape is untouched. */}
-				<BrailleSpinner label={`${label} running`} />
+				<BrailleSpinner label={tx("{agent} running", { agent: tx(label) })} />
 				{label}
 				{elapsed !== null && <span className="font-normal">· {elapsed}s</span>}
 			</div>
 			{job?.activity && (
 				<div className="mt-1 truncate text-sm text-muted-foreground" data-testid="dispatch-activity-line">
-					{job.activity}
+					{tx(job.activity)}
 				</div>
 			)}
 			{!job && (
-				<div className="mt-1 text-sm text-muted-foreground" data-testid="dispatch-pending">
-					Dispatched…
-				</div>
+				<div className="mt-1 text-sm text-muted-foreground" data-testid="dispatch-pending">{tx("Dispatched…")}</div>
 			)}
 		</div>
 	);

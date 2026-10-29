@@ -42,6 +42,7 @@ import {
 import { useAppearance } from "./appearance.tsx";
 import { SettingsSection } from "./controls.tsx";
 import { UpdateSettings } from "./update-settings.tsx";
+import { LanguageSettings } from "./language-settings";
 import { AgentSection } from "./agent-section.tsx";
 import type { ModelsSettings } from "@/src/core";
 import { MENU_CLOSE_EVENT, MENU_OPEN_EVENT } from "@/components/menu-shell";
@@ -52,6 +53,7 @@ import { AppearanceSection, GraphSection } from "./appearance-section.tsx";
 import { KeyboardSection } from "./keyboard-section.tsx";
 import { ChatGPTUIProvider } from "./chatgpt-connection.tsx";
 import { NativeSubscriptionUIProvider } from "./subscription-connections.tsx";
+import { useI18n } from "@/components/i18n";
 
 /** Owner (2026-09-20): hints earn their place — mechanics-explaining
  *  prose is out; only the keyboard note stays (storage location is a
@@ -142,11 +144,14 @@ export function SettingsDialogBody({
 	 *  retargets follow it exactly like initialSection below. */
 	initialRow?: string | null;
 }) {
+	const { t: tx } = useI18n();
 	const { onAppearanceChange } = useAppearance();
 	const [record, setRecord] = useState<UserSettings | null | undefined>(
 		undefined,
 	);
 	const [error, setError] = useState<string | null>(null);
+	const [savingGeneral, setSavingGeneral] = useState(false);
+	const generalWrite = useRef(false);
 	// MenuShell open-count — drives the content column's scroll lock.
 	const [openMenus, setOpenMenus] = useState(0);
 	const contentRef = useRef<HTMLDivElement | null>(null);
@@ -229,7 +234,13 @@ export function SettingsDialogBody({
 			section: "general" | "agent" | "models" | "appearance" | "graph" | "compaction",
 			body: object,
 		) => {
+			if (section === "general") {
+				if (generalWrite.current) return;
+				generalWrite.current = true;
+				setSavingGeneral(true);
+			}
 			setError(null);
+			try {
 			const res = await fetch(`/api/settings/${section}`, {
 				method: "PUT",
 				headers: { "content-type": "application/json" },
@@ -257,6 +268,14 @@ export function SettingsDialogBody({
 			notifySettingsSaved(section);
 			if (section === "appearance")
 				onAppearanceChange(body as AppearanceSettings);
+			} catch {
+				setError("Settings could not be saved. Try again.");
+			} finally {
+				if (section === "general") {
+					generalWrite.current = false;
+					setSavingGeneral(false);
+				}
+			}
 		},
 		[onAppearanceChange],
 	);
@@ -265,23 +284,23 @@ export function SettingsDialogBody({
 		<div
 			role="dialog"
 			aria-modal="true"
-			aria-label="Settings"
+			aria-label={tx("Settings")}
 			data-testid="settings-dialog"
 			className="settings-dialog-pop flex h-[620px] max-h-[85vh] w-[920px] max-w-[90vw] flex-col overflow-hidden rounded-md border border-border bg-card shadow-xl"
 			onClick={(e) => e.stopPropagation()}
 		>
 			{/* Header — the app's quiet CMU title language. */}
 			<header className="flex h-15 shrink-0 items-center gap-3 border-b border-border px-5">
-				<h2 className="font-title text-2xl tracking-tight">Settings</h2>
+				<h2 className="font-title text-2xl tracking-tight">{tx("Settings")}</h2>
 				<Hint
 						// Esc closes the dialog (its own listener) — surface it.
-						label="Close"
+						label={tx("Close")}
 						binding="escape"
 						side="left"
 					>
 						<button
 					type="button"
-					aria-label="Close settings"
+					aria-label={tx("Close settings")}
 					data-testid="settings-close"
 					className="ml-auto size-7 rounded-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
 					onClick={onClose}
@@ -303,7 +322,7 @@ export function SettingsDialogBody({
 				{/* Left nav — text-only, the session-list mono language,
 					    active = bg-accent. */}
 				<nav
-					aria-label="Settings sections"
+					aria-label={tx("Settings sections")}
 					data-testid="settings-nav"
 					className="flex w-44 shrink-0 flex-col gap-1 border-r border-border p-2"
 				>
@@ -320,7 +339,7 @@ export function SettingsDialogBody({
 							}`}
 							onClick={() => setActive(s.id)}
 						>
-							{s.label}
+							{tx(s.label)}
 						</button>
 					))}
 				</nav>
@@ -342,40 +361,39 @@ export function SettingsDialogBody({
 							className="m-4 rounded-sm border border-red-500/40 px-3 py-2 text-xs text-red-500"
 							data-testid="settings-error"
 						>
-							{error}
+							{tx(error)}
 						</p>
 					)}
 					{record === undefined ? (
-						<p className="px-6 py-5 text-xs text-muted-foreground/70">
-							Loading settings…
-						</p>
+						<p className="px-6 py-5 text-xs text-muted-foreground/70">{tx("Loading settings…")}</p>
 					) : record === null ? (
-						<p className="px-6 py-5 text-xs text-muted-foreground/70">
-							Settings could not be loaded — refresh to retry.
-						</p>
+						<p className="px-6 py-5 text-xs text-muted-foreground/70">{tx("Settings could not be loaded — refresh to retry.")}</p>
 					) : (
 						<div>
 							{active === "general" && (
 								<SettingsSection
-									title="General"
+									title={tx("General")}
 									testid="section-general"
 								>
+									<fieldset disabled={savingGeneral} className="contents">
+									<LanguageSettings general={record.general} onChange={(next) => write("general", next)} />
 									<UpdateSettings
 										autoUpdate={record.general?.autoUpdate ?? true}
 										onAutoUpdateChange={(on) =>
 											void write("general", { ...record.general, autoUpdate: on })
 										}
 									/>
+									</fieldset>
 								</SettingsSection>
 							)}
 							{active === "keys" && (
-								<SettingsSection title="Providers" testid="section-keys">
+								<SettingsSection title={tx("Providers")} testid="section-keys">
 									<KeysSection initialRow={initialRow ?? undefined} />
 								</SettingsSection>
 							)}
 							{active === "agent" && (
 								<SettingsSection
-									title="Agent"
+									title={tx("Agent")}
 									testid="section-agent"
 								>
 									<AgentSection
@@ -397,7 +415,7 @@ export function SettingsDialogBody({
 							)}
 							{active === "appearance" && (
 								<SettingsSection
-									title="Appearance"
+									title={tx("Appearance")}
 									testid="section-appearance"
 								>
 									<AppearanceSection
@@ -410,7 +428,7 @@ export function SettingsDialogBody({
 							)}
 							{active === "graph" && (
 								<SettingsSection
-									title="Graph"
+									title={tx("Graph")}
 									testid="section-graph"
 								>
 									<GraphSection
@@ -423,8 +441,8 @@ export function SettingsDialogBody({
 							)}
 							{active === "keyboard" && (
 								<SettingsSection
-									title="Keyboard"
-									hint="Stored on this device"
+									title={tx("Keyboard")}
+									hint={tx("Stored on this device")}
 									testid="section-keyboard"
 								>
 									<KeyboardSection />

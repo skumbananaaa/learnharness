@@ -37,6 +37,11 @@ afterEach(() => {
 });
 
 describe("the settings store", () => {
+	it("persists interface and learning languages independently of dictation and other preferences", () => {
+		const record = { version: 1, general: { interfaceLanguage: "sv", learningLanguage: "en", autoUpdate: false }, dictation: { language: "de" }, graph: { enabled: false } };
+		writeSettings(record);
+		assert.deepEqual(readSettings(), record);
+	});
 	it("reads null on first boot (no record)", () => {
 		fs.rmSync(SETTINGS_FILE, { force: true });
 		assert.equal(readSettings(), null);

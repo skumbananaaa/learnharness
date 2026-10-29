@@ -26,6 +26,7 @@ import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { ModelRole } from "../../config.ts";
 import type { ChatSettings } from "./contracts/chat.ts";
 import type { SearchEngineId } from "./search.ts";
+import { resolveLanguage } from "./language.ts";
 import {
 	BACKGROUND_MODEL_ROLES,
 	FACTORY_SETTINGS,
@@ -181,6 +182,8 @@ export function resolveSettings(record: UserSettings | null): EffectiveSettings 
 	}
 	return {
 		general: {
+			interfaceLanguage: resolveLanguage(record?.general?.interfaceLanguage),
+			learningLanguage: resolveLanguage(record?.general?.learningLanguage),
 			autoUpdate: record?.general?.autoUpdate ?? FACTORY_SETTINGS.general.autoUpdate,
 		},
 		dictation: {

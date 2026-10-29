@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { CLAUDE_CODE_PROVIDER, subscriptionLabels, subscriptionLabel, type cliContextWindowOf, type SessionPricing, type TurnUsage } from "@/src/core";
 import { formatTokens, formatUsd, planCostLabel, prettyModel } from "@/components/usage-format";
 import { ModelControl, catalogLimits, useModelCatalog } from "@/components/model-picker";
+import { useI18n, I18nText } from "@/components/i18n";
 
 export function formatContextMeasurement(tokens: number | null, limit: number | null): string {
 	const numerator = tokens === null ? "?" : formatTokens(tokens);
@@ -68,6 +69,7 @@ export function StatsBar({
 	 *  data (which renders nothing pre-chat on that surface). */
 	leadingSlot?: ReactNode;
 }) {
+	const { t: tx } = useI18n();
 	const [open, setOpen] = useState(false);
 	const [selectedModel, setSelectedModel] = useState<string | undefined>();
 	const modelChanged = useCallback((model: string | undefined) => {
@@ -154,12 +156,10 @@ export function StatsBar({
 						data-testid="stats-detail"
 						className="absolute bottom-full left-1/2 z-40 mb-1.5 w-72 -translate-x-1/2 rounded-xl border bg-card p-3 text-xs shadow-xl"
 					>
-						<div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-							Session stats
-						</div>
+						<div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{tx("Session stats")}</div>
 						<div className="flex flex-col gap-1 text-muted-foreground">
 							<div className="flex justify-between gap-2">
-								<span>Context (last call)</span>
+								<span>{tx("Context (last call)")}</span>
 								<span className="tabular-nums text-card-foreground">
 									{contextLabel}
 								</span>
@@ -168,22 +168,20 @@ export function StatsBar({
 								<p>Window reported by Claude Code; may be lower for auto-compaction.</p>
 							)}
 							<div className="flex justify-between gap-2">
-								<span>{subscription ? "Usage" : "Total cost"}</span>
+								<span>{subscription ? tx("Usage") : tx("Total cost")}</span>
 								<span className="tabular-nums text-card-foreground">{costLabel}</span>
 							</div>
-							{providers.includes("ChatGPT") && <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer" className="underline underline-offset-2">Manage ChatGPT usage</a>}
+							{providers.includes("ChatGPT") && <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer" className="underline underline-offset-2">{tx("Manage ChatGPT usage")}</a>}
 							{unpriced > 0 && (
 								<div className="flex justify-between gap-2">
-									<span>Unpriced turns</span>
+									<span>{tx("Unpriced turns")}</span>
 									<span className="tabular-nums text-card-foreground">{unpriced}</span>
 								</div>
 							)}
 						</div>
 						{turns.length > 0 && (
 							<>
-								<div className="mb-1 mt-2.5 border-t pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-									Turns
-								</div>
+								<div className="mb-1 mt-2.5 border-t pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">{tx("Turns")}</div>
 								<ul className="flex max-h-56 flex-col gap-1 overflow-y-auto">
 									{turns.map((turn, i) => {
 										const c = pricing?.turnCosts[turn.id] ?? null;
@@ -193,7 +191,7 @@ export function StatsBar({
 													#{i + 1} · {prettyModel(turn.model, true)}
 												</span>
 												<span className="flex shrink-0 items-center gap-2 tabular-nums text-card-foreground">
-													<span className="text-muted-foreground">{turn.steps.length} steps</span>
+													<span className="text-muted-foreground">{turn.steps.length}{" "}<I18nText message="steps" /></span>
 													<span>{turn.model.startsWith(`${CLAUDE_CODE_PROVIDER}:`) ? "CLI" : subscriptionLabel(turn.model) ?? (c === null ? "—" : formatUsd(c))}</span>
 												</span>
 											</li>

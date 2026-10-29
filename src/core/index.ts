@@ -62,6 +62,7 @@ export * from "./fuzzy.ts";
 // the user-settings record's shape/sanitizer (pure) and its fully-resolved
 // view. Browser-safe — the Wave-4 panel imports these directly.
 export * from "./settings.ts";
+export * from "./language.ts";
 export * from "./dictation.ts";
 // graph-deletion.ts (wave 6): the whole module is PURE but storage-port
 // driven — the deletion RUNS server-side only. The shell needs exactly one
@@ -79,7 +80,8 @@ export * from "./session-navigation.ts";
 export * from "./auth-keys.ts";
 // keyboard.ts: the shortcut registry + binding normalization (pure, browser-safe).
 export * from "./keyboard.ts";
-export * from "./coverage.ts";
+// coverage.ts hashes transcript fingerprints with node:crypto. Server callers
+// import it directly; exporting it here pulls a Node builtin into browser bundles.
 // session-markdown.ts (2026-09-27 engine; first consumer 2026-10-06): the
 // ONE session→markdown formatter — the extractor's view and the user-facing
 // export share it. Pure, browser-safe.

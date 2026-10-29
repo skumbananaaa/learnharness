@@ -5,6 +5,7 @@ import { createPdfReadTools } from "../tools/pdf-read.ts";
 import type { SearchProvider } from "../../core/search.ts";
 import type { PiEngine } from "../models.ts";
 import { runSubagent } from "./pi-run.ts";
+import { learningLanguageInstructions, type Language } from "../../core/language.ts";
 
 /**
  * The researcher sub-agent (vision §2.5): a SEPARATE ToolLoopAgent instance
@@ -68,6 +69,7 @@ Numbered findings with inline source citations:
 What couldn't be answered. Suggested next steps.`;
 
 export interface ResearcherRunOptions {
+	learningLanguage?: Language;
 	engine?: PiEngine;
 	/** The search seam (search port wave, 2026-09-20): resolves the LIVE
 	 *  provider per call, null = honestly unavailable (the web_search tool
@@ -98,7 +100,7 @@ export async function runResearcherAgent(prompt: string, opts: ResearcherRunOpti
 		role: "researcher",
 		prompt,
 		engine: opts.engine,
-		systemPrompt: INSTRUCTIONS,
+		systemPrompt: INSTRUCTIONS + learningLanguageInstructions(opts.learningLanguage),
 		maxTurns: 12,
 		abortSignal: opts.abortSignal,
 		onUsage: opts.onUsage,

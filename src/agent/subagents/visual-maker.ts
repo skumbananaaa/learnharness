@@ -7,6 +7,7 @@ import { piEngineFor, type PiEngine, type ThinkingLevel } from "../models.ts";
 import { providerEventObserver, type ProviderEventObserver } from "../provider-events.ts";
 import type { VisualResult } from "../../core/contracts.ts";
 import { getHeadless, type HeadlessApi } from "./headless.ts";
+import { learningLanguageInstructions, type Language } from "../../core/language.ts";
 
 /**
  * The visual-maker sub-agent (vision §2.5): authors ONE precise SVG from a
@@ -36,6 +37,7 @@ export interface VisualMakerInput {
 }
 
 export interface VisualMakerOptions {
+	learningLanguage?: Language;
 	/** Test seam: scripted engine; production uses the visualMaker role. */
 	engine?: PiEngine;
 	headless?: HeadlessApi;
@@ -164,7 +166,7 @@ export async function runVisualMaker(input: VisualMakerInput, opts: VisualMakerO
 			// loop owns tool execution and the image-in-the-loop injection).
 			const result = await streamOnce(
 				engine,
-				INSTRUCTIONS,
+				INSTRUCTIONS + learningLanguageInstructions(opts.learningLanguage),
 				messages,
 				toolDeclarations,
 				sessionId,

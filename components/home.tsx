@@ -16,6 +16,7 @@ import { OPENING_PROMPT_FAILURE } from "@/components/opening-prompt";
 import { PathInput } from "@/components/path-input";
 import { SessionStarter } from "@/components/start-session";
 import type { TurnUsage } from "@/src/core";
+import { useI18n } from "@/components/i18n";
 
 /**
  * Home — the knowledge graph is the main view, full-bleed edge to edge
@@ -33,6 +34,7 @@ export function Home({
 	 * changing the setting applies on the next visit home. */
 	rendering?: boolean;
 }) {
+	const { t: tx } = useI18n();
 	const router = useRouter();
 	const [topic, setTopic] = useState("");
 	/* The topic MIRROR ("nothing gets lost" round, 2026-10-01 — same
@@ -235,13 +237,11 @@ export function Home({
 									data-testid="setup-cta"
 									onClick={() => setSetupOpen(true)}
 									className="rounded-sm border border-border bg-card px-3 py-1.5 font-ui text-xs text-foreground transition-colors hover:border-muted-foreground/50 hover:bg-accent cursor-pointer"
-								>
-									Set up your models
-								</button>
+								>{tx("Set up your models")}</button>
 							)
 						)}
 					/>
-					{startError && <p role="alert" className="mb-2 text-sm text-destructive">{OPENING_PROMPT_FAILURE}</p>}
+					{startError && <p role="alert" className="mb-2 text-sm text-destructive">{tx(OPENING_PROMPT_FAILURE)}</p>}
 					<form
 						className="flex items-end gap-1.5 rounded-2xl border bg-card p-1.5 shadow-lg"
 					onSubmit={(e) => {
@@ -272,7 +272,7 @@ export function Home({
 								void start();
 							}
 						}}
-						placeholder={mode === "practice" ? "What do you want to practice?" : "What do you want to learn?"}
+						placeholder={mode === "practice" ? tx("What do you want to practice?") : tx("What do you want to learn?")}
 						autoFocus
 						className="field-sizing-content lh-input max-h-48 min-h-10 flex-1 resize-none bg-transparent px-2.5 py-2 outline-none placeholder:text-muted-foreground"
 					/>
@@ -280,7 +280,7 @@ export function Home({
 					    affordance (owner, subtlety round 2026-09-25). */}
 					<button
 						type="submit"
-						aria-label="Start session"
+						aria-label={tx("Start session")}
 						disabled={(!topic.trim() && !dictation.active) || busy}
 						className="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-primary text-primary-foreground transition-colors hover:opacity-90 disabled:opacity-40"
 					>
@@ -310,7 +310,7 @@ export function Home({
 										}
 									>
 										{m === "practice" ? <DumbbellIcon aria-hidden="true" className="size-3" /> : null}
-										{m === "teach" ? "Teach" : "Practice"}
+										{m === "teach" ? tx("Teach") : tx("Practice")}
 									</button>
 								))}
 							</div>

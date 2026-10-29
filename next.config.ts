@@ -67,6 +67,10 @@ const nextConfig: NextConfig = {
 	// caught it; unit tests run unbundled and never see it.
 	outputFileTracingIncludes: {
 		"*": [
+			// Prompt fragments are discovered with readdirSync at runtime.
+			// Webpack cannot infer their paths from that directory scan.
+			"src/agent/system-prompt.md",
+			"src/agent/prompts/**/*.md",
 			// The standalone trace omitted this entire runtime-imported directory
 			// in 0.3.0, so importing puppeteer-core failed before browser startup.
 			"node_modules/@puppeteer/browsers/lib/browser-data/**/*.js",

@@ -30,6 +30,7 @@ import { runDemoBuilder } from "./demo-builder.ts";
 import { runPdfReaderAgent } from "./pdf-reader.ts";
 import { runResearcherAgent } from "./researcher.ts";
 import { runVisualMaker } from "./visual-maker.ts";
+import type { Language } from "../../core/language.ts";
 
 /**
  * The background job runner (contracts.ts "THE ASYNC PROTOCOL" §2–3), created
@@ -65,6 +66,7 @@ export const pdfModelOverride: { current?: PiEngine } = {};
 type JobToolInput = ResearchToolInput | DemoToolInput | VisualToolInput | PdfToolInput;
 
 export interface JobRunnerDeps {
+	learningLanguage?: () => Language;
 	chatStore: ChatStore;
 	jobStore: JobStore;
 	/**
@@ -106,6 +108,7 @@ export interface JobRunner {
  * semantics) and the usage tap (money channel — every model call folds into
  * JobRecord.usage as it completes). */
 interface LoopContext {
+	learningLanguage: Language;
 	/** Fires when abortJob kills the run; abortSignal is passed into every
 	 * model call so the spend stops mid-call, not at the next loop check. */
 	abortSignal: AbortSignal;
@@ -143,6 +146,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 		const controller = new AbortController();
 		registerJobAbort(jobId, controller);
 		return {
+			learningLanguage: deps.learningLanguage?.() ?? "en",
 			abortSignal: controller.signal,
 			chatId,
 			onUsage: (step) => {
@@ -376,6 +380,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 				pdfDir,
 				abortSignal: loop.abortSignal,
 				chatId: loop.chatId,
+				learningLanguage: loop.learningLanguage,
 				// Money channel: each agent step is one model call — fold its
 				// usage into the record as it completes (progress write).
 				onUsage: (usage) => loop.onUsage(piUsageToStep(usage)),
@@ -427,6 +432,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 					engine: model,
 					abortSignal: loop.abortSignal,
 					chatId: loop.chatId,
+					learningLanguage: loop.learningLanguage,
 					onUsage: (usage) => loop.onUsage(piUsageToStep(usage)),
 					onActivity: (line) => jobStore.updateJob(jobId, { activity: line }),
 				},
@@ -463,6 +469,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 					engine: model,
 					abortSignal: loop.abortSignal,
 					chatId: loop.chatId,
+					learningLanguage: loop.learningLanguage,
 					onUsage: (usage) => loop.onUsage(piUsageToStep(usage)),
 					onActivity: (line) => jobStore.updateJob(jobId, { activity: line }),
 				},
@@ -502,6 +509,7 @@ export function createJobRunner(deps: JobRunnerDeps): JobRunner {
 				engine: model,
 				abortSignal: loop.abortSignal,
 				chatId: loop.chatId,
+				learningLanguage: loop.learningLanguage,
 				onUsage: (usage) => loop.onUsage(piUsageToStep(usage)),
 				onActivity: (line) => jobStore.updateJob(jobId, { activity: line }),
 			},

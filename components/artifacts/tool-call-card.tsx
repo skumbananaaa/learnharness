@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import type { ArtifactPartProps } from "@/src/core";
+import { useI18n } from "@/components/i18n";
 
 /**
  * The generic tool-call card (sources v1, 2026-09-19): a quiet, collapsed
@@ -62,6 +63,7 @@ function outputText(output: unknown): string | null {
 }
 
 export function ToolCallCard({ part }: ArtifactPartProps) {
+	const { t: tx } = useI18n();
 	const p = part as ToolCallPart;
 	const tool = p.type.replace(/^tool-/, "");
 	const arg = headlineArg(tool, p.input);
@@ -83,9 +85,7 @@ export function ToolCallCard({ part }: ArtifactPartProps) {
 			<div className="mt-2 space-y-2 rounded-xl border bg-card p-3 text-xs">
 				{p.input != null && (
 					<div>
-						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">
-							Input
-						</div>
+						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">{tx("Input")}</div>
 						<pre className="max-h-32 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
 							{JSON.stringify(p.input, null, 2)}
 						</pre>
@@ -93,25 +93,21 @@ export function ToolCallCard({ part }: ArtifactPartProps) {
 				)}
 				{typeof p.errorText === "string" ? (
 					<div>
-						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">
-							Error
-						</div>
+						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">{tx("Error")}</div>
 						<pre className="whitespace-pre-wrap break-all font-mono text-[11px] text-red-500">
 							{p.errorText}
 						</pre>
 					</div>
 				) : out != null ? (
 					<div>
-						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">
-							Output
-						</div>
+						<div className="mb-1 font-medium uppercase tracking-wide text-muted-foreground">{tx("Output")}</div>
 						<pre className="max-h-64 overflow-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
 							{out}
 						</pre>
 					</div>
 				) : (
 					p.state !== "output-available" && (
-						<div className="text-muted-foreground italic">running…</div>
+						<div className="text-muted-foreground italic">{tx("running…")}</div>
 					)
 				)}
 			</div>

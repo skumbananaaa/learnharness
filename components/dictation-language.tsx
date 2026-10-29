@@ -8,13 +8,15 @@ import { SettingsMenuTrigger, SettingsRow } from "@/components/settings/controls
 import { SearchMenuList } from "@/components/settings/search-menu-list";
 import { useDictationActive } from "@/components/dictation-state";
 import { useDictationLanguage } from "@/components/dictation-preference";
+import { useI18n } from "@/components/i18n";
 
 type LanguagePreference = ReturnType<typeof useDictationLanguage>;
 
 export function DictationLanguageSetting() {
+	const { t: tx } = useI18n();
 	const preference = useDictationLanguage();
 	const active = useDictationActive();
-	return <SettingsRow label="Language" testid="row-dictation-language" dimmed={active}>
+	return <SettingsRow label={tx("Language")} testid="row-dictation-language" dimmed={active}>
 		<DictationLanguagePicker preference={preference} disabled={active} />
 	</SettingsRow>;
 }
@@ -23,6 +25,7 @@ function DictationLanguagePicker({ preference, disabled }: {
 	preference: LanguagePreference;
 	disabled: boolean;
 }) {
+	const { t: tx } = useI18n();
 	const { language, saving, error, load, save } = preference;
 	const [open, setOpen] = useState(false);
 	const triggerRef = useRef<HTMLButtonElement>(null);
@@ -55,12 +58,12 @@ function DictationLanguagePicker({ preference, disabled }: {
 	};
 
 	return <>
-		<Hint label={error ?? `Dictation language: ${label}`} side="top">
+		<Hint label={error ?? tx("Dictation language: {language}", { language: label })} side="top">
 			<SettingsMenuTrigger
 				ref={triggerRef}
 				value={label}
 				data-testid="dictation-language"
-				aria-label={`Dictation language: ${label}`}
+				aria-label={tx("Dictation language: {language}", { language: label })}
 				aria-expanded={open && !disabled}
 				disabled={disabled || saving}
 				onKeyDown={(event) => { if (open) closeOnEscape(event); }}
@@ -97,9 +100,9 @@ function DictationLanguagePicker({ preference, disabled }: {
 					searchTestid="dictation-language-search"
 					listTestid="dictation-language-list"
 					optionTestid={(item) => `dictation-language-${item.code}`}
-					ariaLabel="Search dictation languages"
-					placeholder="Search languages…"
-					empty="No languages match."
+					ariaLabel={tx("Search dictation languages")}
+					placeholder={tx("Search languages…")}
+					empty={tx("No languages match.")}
 					renderItem={(item) => <span className="text-card-foreground">{item.label}</span>}
 				/>
 			</div>

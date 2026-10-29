@@ -108,6 +108,7 @@ import {
 	toOffSliderPosition,
 	toSliderPosition,
 } from "@/src/core";
+import { useI18n, I18nText } from "@/components/i18n";
 
 /** The uniform node look (no state classes — canvas wants hex, not oklch):
  *  the accent color, until the state model lands. */
@@ -340,6 +341,7 @@ export function displayCostTotals(costs: Pick<GraphCostSummary, "stages">): {
 /** Exported for the chains home (graph rendering off, owner
  * 2026-10-06): the same bare cumulative-dollars pill + panel. */
 export function GraphCostControl({ costs }: { costs: GraphCostSummary }) {
+	const { t: tx } = useI18n();
 	const [open, setOpen] = useState(false);
 	// Click anywhere outside (or Escape) closes the panel — the root
 	// wraps button + panel, so the toggle itself keeps working.
@@ -349,7 +351,7 @@ export function GraphCostControl({ costs }: { costs: GraphCostSummary }) {
 		<div ref={rootRef} className="relative">
 			<Hint
 				// Trimmed (owner, subtlety round 2026-09-25).
-				label="Graph costs — click for details"
+				label={tx("Graph costs — click for details")}
 				side="bottom"
 			>
 				<button
@@ -383,6 +385,7 @@ export function GraphCostControl({ costs }: { costs: GraphCostSummary }) {
  * naming-kind runs never reach the list.
  */
 function GraphCostPanel({ costs }: { costs: GraphCostSummary }) {
+	const { t: tx } = useI18n();
 	const stageRows: [string, GraphCostSummary["stages"]["extraction"]][] = [
 		["Extraction", costs.stages.extraction],
 		["Audit", costs.stages.audit],
@@ -393,29 +396,26 @@ function GraphCostPanel({ costs }: { costs: GraphCostSummary }) {
 	return (
 		<div className="w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border bg-card/95 p-3 text-xs shadow-lg backdrop-blur">
 			<div className="mb-2 flex items-baseline justify-between">
-				<span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-					Graph pipeline costs
-				</span>
+				<span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{tx("Graph pipeline costs")}</span>
 				<span className="text-foreground tabular-nums">
 					{graphUsageLabel(costs)}
 					{unpricedRuns > 0 && (
-						<span className="text-muted-foreground"> · {unpricedRuns} unpriced</span>
+						<span className="text-muted-foreground"> · {unpricedRuns}{" "}<I18nText message="unpriced" /></span>
 					)}
 				</span>
 			</div>
 			<div className="flex flex-col gap-1">
 				{stageRows.map(([label, stage]) => (
 					<div key={label} className="flex items-baseline justify-between gap-2 text-[11px]">
-						<span className="shrink-0 text-muted-foreground">{label}</span>
+						<span className="shrink-0 text-muted-foreground">{tx(label)}</span>
 						<span className="min-w-0 text-right tabular-nums">
 							{fmtRunCost(stage.runs - stage.unpricedRuns - (stage.subscriptionRuns ?? 0) <= 0 ? null : stage.dollars, graphProviders(stage))}
 							{stage.unpricedRuns > 0 && (stage.runs - stage.unpricedRuns - (stage.subscriptionRuns ?? 0) > 0 || (stage.subscriptionRuns ?? 0) > 0) && (
-								<span className="text-muted-foreground"> +{stage.unpricedRuns} unpriced</span>
+								<span className="text-muted-foreground"> +{stage.unpricedRuns}{" "}<I18nText message="unpriced" /></span>
 							)}
 							<span className="text-muted-foreground">
 								{" "}
-								· {fmtTokens(stage.tokens.inputTokens)} in / {fmtTokens(stage.tokens.outputTokens)} out
-							</span>
+								· {fmtTokens(stage.tokens.inputTokens)}{" "}<I18nText message="in /" />{" "}{fmtTokens(stage.tokens.outputTokens)}{" "}<I18nText message="out" /></span>
 						</span>
 					</div>
 				))}
@@ -433,7 +433,7 @@ function GraphCostPanel({ costs }: { costs: GraphCostSummary }) {
 									</span>
 								)}
 							</span>
-							<span className="shrink-0 tabular-nums">{fmtRunCost(run.dollars, graphProviders(run))}{run.dollars === null && run.subscriptionRuns === 1 ? " +1 unpriced" : ""}</span>
+							<span className="shrink-0 tabular-nums">{fmtRunCost(run.dollars, graphProviders(run))}{run.dollars === null && run.subscriptionRuns === 1 ? tx(" +1 unpriced") : ""}</span>
 						</div>
 					))}
 			</div>
@@ -454,6 +454,7 @@ function GraphSettingsControl({
 	settings: GraphRenderSettings;
 	changeSettings: (update: (cur: RenderSettings) => RenderSettings) => void;
 }) {
+	const { t: tx } = useI18n();
 	const [open, setOpen] = useState(false);
 	// Click anywhere outside (or Escape) closes the panel (2026-09-17) —
 	// the root wraps button + panel, so the toggle itself keeps working.
@@ -465,7 +466,7 @@ function GraphSettingsControl({
 		<div ref={rootRef} className="relative">
 			<Hint
 				// User language (tooltip wave) — "rendering" is internal.
-				label="Graph display settings"
+				label={tx("Graph display settings")}
 				side="bottom"
 			>
 				<button
@@ -498,7 +499,7 @@ function GraphSettingsControl({
 							    number — src/core/render-settings.ts). Physics keeps the
 							    fine-grained log sliders (step 5). */}
 							<SettingSlider
-								label="Node size"
+								label={tx("Node size")}
 								min={0}
 								max={100}
 								step={10}
@@ -508,7 +509,7 @@ function GraphSettingsControl({
 									changeSettings((cur) => ({ ...cur, nodeSize: fromLadderPosition(p, NODE_SIZE_LADDER) }))}
 							/>
 							<SettingSlider
-								label="Edge width"
+								label={tx("Edge width")}
 								min={0}
 								max={100}
 								step={10}
@@ -518,7 +519,7 @@ function GraphSettingsControl({
 									changeSettings((cur) => ({ ...cur, edgeWidth: fromLadderPosition(p, EDGE_WIDTH_LADDER) }))}
 							/>
 							<SettingSlider
-								label="Arrowhead size"
+								label={tx("Arrowhead size")}
 								min={0}
 								max={100}
 								step={10}
@@ -528,7 +529,7 @@ function GraphSettingsControl({
 									changeSettings((cur) => ({ ...cur, arrowLength: fromLadderPosition(p, ARROW_LENGTH_LADDER) }))}
 							/>
 							<SettingSlider
-								label="Label size"
+								label={tx("Label size")}
 								min={0}
 								max={100}
 								step={10}
@@ -539,7 +540,7 @@ function GraphSettingsControl({
 							/>
 							{/* Display is absolute (ratio / 0.5): "1×" is the default, dead-center (owner, 2026-10-07). */}
 							<SettingSlider
-								label="Labels until zoom"
+								label={tx("Labels until zoom")}
 								min={0}
 								max={100}
 								step={10}
@@ -556,11 +557,9 @@ function GraphSettingsControl({
 						    the whole build (splat/blur/readback/blit), not just
 						    the paint. */}
 						<div className="mt-1.5 flex flex-col gap-1.5 border-t pt-1.5">
-							<span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-								Regions
-							</span>
+							<span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{tx("Regions")}</span>
 							<label className="flex cursor-pointer items-center justify-between text-[11px] text-muted-foreground">
-								<span>Background colors</span>
+								<span>{tx("Background colors")}</span>
 								<input
 									type="checkbox"
 									checked={settings.regions.enabled}
@@ -573,7 +572,7 @@ function GraphSettingsControl({
 								/>
 							</label>
 							<SettingSlider
-								label="Dilation"
+								label={tx("Dilation")}
 								disabled={!regionTuning.enabled}
 								min={0}
 								max={100}
@@ -587,7 +586,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Blur"
+								label={tx("Blur")}
 								disabled={!regionTuning.enabled}
 								min={0}
 								max={100}
@@ -602,7 +601,7 @@ function GraphSettingsControl({
 								}
 							/>
 							<SettingSlider
-								label="Edge alpha"
+								label={tx("Edge alpha")}
 								disabled={!regionTuning.enabled}
 								min={0}
 								max={100}
@@ -618,7 +617,7 @@ function GraphSettingsControl({
 							<label
 								className={`flex items-center justify-between gap-2 text-[11px] text-muted-foreground${!regionTuning.enabled ? " opacity-40" : ""}`}
 							>
-								<span>Bitmap resolution</span>
+								<span>{tx("Bitmap resolution")}</span>
 								<select
 									disabled={!regionTuning.enabled}
 									className="rounded-md border bg-background px-1.5 py-0.5 text-xs tabular-nums text-foreground"
@@ -643,7 +642,7 @@ function GraphSettingsControl({
 							    their own clusterLabels toggle. Size is screen px
 							    (constant at any zoom, unlike node labels). */}
 							<label className="flex cursor-pointer items-center justify-between text-[11px] text-muted-foreground">
-								<span>Cluster labels</span>
+								<span>{tx("Cluster labels")}</span>
 								<input
 									type="checkbox"
 									checked={settings.clusterLabels}
@@ -652,7 +651,7 @@ function GraphSettingsControl({
 								/>
 							</label>
 							<SettingSlider
-								label="Cluster label size"
+								label={tx("Cluster label size")}
 								disabled={!settings.clusterLabels}
 								min={0}
 								max={100}
@@ -677,11 +676,9 @@ function GraphSettingsControl({
 						    Order (user 2026-09-17): general forces first; depth
 						    anchor + its gray-out-able controls last. */}
 						<div className="mt-1.5 flex flex-col gap-1.5 border-t pt-1.5">
-							<span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-								Physics
-							</span>
+							<span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{tx("Physics")}</span>
 							<SettingSlider
-								label="Node repulsion"
+								label={tx("Node repulsion")}
 								min={0}
 								max={100}
 								step={5}
@@ -694,7 +691,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Edge attraction"
+								label={tx("Edge attraction")}
 								min={0}
 								max={100}
 								step={5}
@@ -707,7 +704,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Edge length"
+								label={tx("Edge length")}
 								min={0}
 								max={100}
 								step={5}
@@ -720,7 +717,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Central pull"
+								label={tx("Central pull")}
 								min={0}
 								max={100}
 								step={5}
@@ -733,7 +730,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Cluster pull"
+								label={tx("Cluster pull")}
 								min={0}
 								max={100}
 								step={5}
@@ -746,7 +743,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Friction"
+								label={tx("Friction")}
 								min={0}
 								max={100}
 								step={5}
@@ -762,9 +759,7 @@ function GraphSettingsControl({
 							    forces first, then the mode + its conditional
 							    controls at the very bottom — the grayed group reads
 							    as a self-contained sub-section. */}
-							<label className="flex items-center justify-between gap-2 text-xs">
-								Depth anchor
-								<select
+							<label className="flex items-center justify-between gap-2 text-xs">{tx("Depth anchor")}<select
 									className="rounded border bg-background px-1 py-0.5 text-xs"
 									value={physicsTuning.depthMode}
 									onChange={(e) =>
@@ -774,13 +769,13 @@ function GraphSettingsControl({
 										}))
 									}
 								>
-									<option value="off">Off</option>
-									<option value="vertical">Vertical (up)</option>
-									<option value="radial">Radial (outward)</option>
+									<option value="off">{tx("Off")}</option>
+									<option value="vertical">{tx("Vertical (up)")}</option>
+									<option value="radial">{tx("Radial (outward)")}</option>
 								</select>
 							</label>
 							<SettingSlider
-								label="Depth strength"
+								label={tx("Depth strength")}
 								disabled={physicsTuning.depthMode === "off"}
 								min={0}
 								max={100}
@@ -794,7 +789,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Depth spacing"
+								label={tx("Depth spacing")}
 								disabled={physicsTuning.depthMode === "off"}
 								min={0}
 								max={100}
@@ -808,7 +803,7 @@ function GraphSettingsControl({
 									}))}
 							/>
 							<SettingSlider
-								label="Base ring radius"
+								label={tx("Base ring radius")}
 								disabled={physicsTuning.depthMode !== "radial"}
 								min={0}
 								max={100}
@@ -866,13 +861,14 @@ export function GraphChromeRow({
 	 *  2026-09-29). */
 	onOpenChains: () => void;
 }) {
+	const { t: tx } = useI18n();
 	return (
 		<>
 			{!isEmpty && (
 				<div className="graph-chrome-fade-in w-56 min-w-0 shrink rounded-xl border bg-card/85 px-1 py-[3px] shadow-lg backdrop-blur">
 					<Hint
 						// ⌘F focuses node search (surface-scoped registry action).
-						label="Search nodes"
+						label={tx("Search nodes")}
 						action="find"
 						side="bottom"
 					>
@@ -882,15 +878,15 @@ export function GraphChromeRow({
 							ref={searchInputRef}
 							value={query}
 							onChange={(e) => onQuery(e.target.value)}
-							placeholder="Search nodes…"
-							aria-label="Search nodes"
+							placeholder={tx("Search nodes…")}
+							aria-label={tx("Search nodes")}
 							spellCheck={false}
 							className="h-7 w-full rounded-lg border bg-background pl-8 text-xs outline-none placeholder:text-muted-foreground focus:border-ring"
 						/>
 					</div>
 					</Hint>
 					{noMatch && (
-						<div className="px-1.5 pt-1 text-[11px] text-muted-foreground">No matching nodes.</div>
+						<div className="px-1.5 pt-1 text-[11px] text-muted-foreground">{tx("No matching nodes.")}</div>
 					)}
 				</div>
 			)}
@@ -898,16 +894,14 @@ export function GraphChromeRow({
 			    container (36px band), between the search and Import. */}
 			{!isEmpty && (
 				<div className="graph-chrome-fade-in shrink-0 rounded-xl border bg-card/85 px-1 py-[3px] shadow-lg backdrop-blur">
-					<Hint label="Every reasoning chain" side="bottom">
+					<Hint label={tx("Every reasoning chain")} side="bottom">
 						<button
 							type="button"
 							onClick={onOpenChains}
 							data-testid="open-chain-table"
 							className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent"
 						>
-							<ListTreeIcon className="size-3" />
-							Chains
-						</button>
+							<ListTreeIcon className="size-3" />{tx("Chains")}</button>
 					</Hint>
 				</div>
 			)}
@@ -929,7 +923,7 @@ export function GraphChromeRow({
 					// The one button whose action isn't obvious from its label:
 					// the missing fact is where imports go (owner, subtlety
 					// round 2026-09-25).
-					label="Import notes into the graph"
+					label={tx("Import notes into the graph")}
 					side="bottom"
 				>
 					<button
@@ -940,7 +934,7 @@ export function GraphChromeRow({
 					className="flex h-7 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted-foreground transition-colors hover:bg-accent disabled:opacity-50"
 				>
 						<UploadIcon className="size-3" />
-						{importing ? "Importing…" : "Import notes…"}
+						{importing ? tx("Importing…") : tx("Import notes…")}
 					</button>
 				</Hint>
 			</div>
@@ -974,6 +968,7 @@ export function GraphView({
 	onPracticeSelectionChange?: (nodes: { id: string; name: string; statement: string }[]) => void;
 	onChainSelectClose?: () => void;
 }) {
+	const { t: tx } = useI18n();
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const canvasRef = useRef<HTMLCanvasElement | null>(null);
 	const cardRef = useRef<HTMLDivElement | null>(null);
@@ -1498,10 +1493,8 @@ export function GraphView({
 				<div className="flex h-full w-full items-center justify-center px-4">
 					<div className="flex flex-col items-center gap-3 text-center text-muted-foreground">
 						<WaypointsIcon className="size-10 opacity-40" strokeWidth={1.25} />
-						<div className="text-lg font-medium text-foreground">Knowledge graph</div>
-						<p className="max-w-sm text-sm">
-							Start a session or import notes to build your graph.
-						</p>
+						<div className="text-lg font-medium text-foreground">{tx("Knowledge graph")}</div>
+						<p className="max-w-sm text-sm">{tx("Start a session or import notes to build your graph.")}</p>
 					</div>
 				</div>
 			) : (
@@ -1540,9 +1533,7 @@ export function GraphView({
 							setCtxNode(null);
 						}}
 						className="flex items-center rounded-lg px-2.5 py-1.5 text-left text-muted-foreground/80 transition-colors hover:bg-accent hover:text-foreground"
-					>
-						Delete
-					</button>
+					>{tx("Delete")}</button>
 				</MenuShell>
 			)}
 
@@ -1652,7 +1643,7 @@ export function GraphView({
 					<div className="mt-1 text-xs leading-relaxed text-muted-foreground">{selected.node.statement}</div>
 					{selected.sourceIds.length > 0 ? (
 						<div className="mt-3 flex flex-col gap-1">
-							<div className="text-xs text-muted-foreground">Sessions</div>
+							<div className="text-xs text-muted-foreground">{tx("Sessions")}</div>
 							{selected.sourceIds.map((sourceId) => {
 								// An imported-notes file: a STATIC entry — the path,
 								// plain text, never a link (no session to open).
@@ -1681,7 +1672,7 @@ export function GraphView({
 							})}
 						</div>
 					) : (
-						<div className="mt-3 text-xs text-muted-foreground">No sessions recorded.</div>
+						<div className="mt-3 text-xs text-muted-foreground">{tx("No sessions recorded.")}</div>
 					)}
 				</div>
 			)}

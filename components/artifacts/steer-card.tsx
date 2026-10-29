@@ -7,6 +7,7 @@ import { isSubagentFailure } from "@/src/core";
 import { DemoOutputCard } from "@/components/artifacts/demo-card";
 import { PdfBriefCard, ResearchBriefCard } from "@/components/artifacts/job-card";
 import { VisualOutputCard } from "@/components/artifacts/visual-card";
+import { useI18n, I18nText } from "@/components/i18n";
 
 /**
  * The sub-agent result delivery card (contracts.ts "THE ASYNC PROTOCOL" §4).
@@ -26,6 +27,7 @@ import { VisualOutputCard } from "@/components/artifacts/visual-card";
  *     render; only a failure note does.
  */
 export function SubagentSteerCard({ message }: { message: LhViewMessage }) {
+	const { t: tx } = useI18n();
 	const artifactPart = message.parts.find((p) => p.type === "data-subagent-artifact");
 	const data = artifactPart?.data as SubagentArtifactData | undefined;
 	// The abort steer (2026-09 dock semantics): its message-type part is
@@ -37,9 +39,7 @@ export function SubagentSteerCard({ message }: { message: LhViewMessage }) {
 			| undefined;
 		if (aborted?.data) return <AbortedBadge kind={aborted.data.kind ?? "job"} />;
 		return (
-				<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-				A sub-agent finished, but its result could not be displayed.
-			</div>
+				<div className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">{tx("A sub-agent finished, but its result could not be displayed.")}</div>
 		);
 	}
 	switch (data.kind) {
@@ -66,11 +66,12 @@ export function SubagentSteerCard({ message }: { message: LhViewMessage }) {
  * teacher's wake turn acknowledges the abort in the lesson itself,
  * this just marks what happened. */
 function AbortedBadge({ kind }: { kind: string }) {
+	const { t: tx } = useI18n();
 	return (
 		<div data-testid="job-aborted-badge" className="flex items-center gap-2 text-xs text-muted-foreground">
 			<CircleX className="size-3.5" />
 			<span className="font-medium uppercase tracking-wide">{kind}</span>
-			<span>aborted by the learner</span>
+			<span>{tx("aborted by the learner")}</span>
 		</div>
 	);
 }
@@ -80,6 +81,7 @@ function AbortedBadge({ kind }: { kind: string }) {
  * the badge marks delivery, the collapsed details carries the full text
  * + consulted pages. */
 function PdfCompleteBadge({ result }: { result: PdfResult }) {
+	const { t: tx } = useI18n();
 	// The honest count is READ pages (extract/render — sources v1 split);
 	// the ?? is runtime tolerance for pre-split persisted steers.
 	const readPages = result.pagesRead ?? result.pagesConsulted;
@@ -88,14 +90,13 @@ function PdfCompleteBadge({ result }: { result: PdfResult }) {
 			<summary className="flex cursor-pointer select-none list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
 				<CheckIcon className="size-3.5" />
 				<span className="font-medium uppercase tracking-wide">PDF</span>
-				<span>reading complete</span>
+				<span>{tx("reading complete")}</span>
 				{readPages.length > 0 && (
-					<span>
-						· read {readPages.length} page{readPages.length === 1 ? "" : "s"}
+					<span><I18nText message="· read" />{" "}{readPages.length}{" "}<I18nText message="page" />{readPages.length === 1 ? "" : "s"}
 					</span>
 				)}
-				<span className="ml-1 text-xs text-muted-foreground/70 group-open:hidden">view brief</span>
-				<span className="ml-1 hidden text-xs text-muted-foreground/70 group-open:inline">hide brief</span>
+				<span className="ml-1 text-xs text-muted-foreground/70 group-open:hidden">{tx("view brief")}</span>
+				<span className="ml-1 hidden text-xs text-muted-foreground/70 group-open:inline">{tx("hide brief")}</span>
 			</summary>
 			<div className="mt-2">
 				<PdfBriefCard output={result} />
@@ -110,15 +111,16 @@ function PdfCompleteBadge({ result }: { result: PdfResult }) {
  * affordance): full markdown + sources, one click away, no extra fetch —
  * the artifact part in the record is the single source of truth. */
 function ResearchCompleteBadge({ result }: { result: ResearchResult }) {
+	const { t: tx } = useI18n();
 	return (
 		<details data-testid="research-complete-badge" className="group w-full text-xs text-muted-foreground">
 			<summary className="flex cursor-pointer select-none list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
 				<CheckIcon className="size-3.5" />
-				<span className="font-medium uppercase tracking-wide">Research</span>
-				<span>complete</span>
-				{result.sources.length > 0 && <span>· {result.sources.length} sources</span>}
-				<span className="ml-1 text-xs text-muted-foreground/70 group-open:hidden">view brief</span>
-				<span className="ml-1 hidden text-xs text-muted-foreground/70 group-open:inline">hide brief</span>
+				<span className="font-medium uppercase tracking-wide">{tx("Research")}</span>
+				<span>{tx("complete")}</span>
+				{result.sources.length > 0 && <span>· {result.sources.length}{" "}<I18nText message="sources" /></span>}
+				<span className="ml-1 text-xs text-muted-foreground/70 group-open:hidden">{tx("view brief")}</span>
+				<span className="ml-1 hidden text-xs text-muted-foreground/70 group-open:inline">{tx("hide brief")}</span>
 			</summary>
 			<div className="mt-2">
 				<ResearchBriefCard output={result} />

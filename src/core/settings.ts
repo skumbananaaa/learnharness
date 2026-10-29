@@ -34,6 +34,7 @@ import type { ModelRole } from "../../config.ts";
 import type { ChatSettings } from "./contracts/chat.ts";
 import type { SearchEngineId } from "./search.ts";
 import { isDictationLanguage, type DictationLanguage } from "./dictation.ts";
+import { isLanguage, type Language } from "./language.ts";
 
 /** The schema version this code understands. Bump ONLY for breaking shape
  *  changes (a field renamed/meaning changed); pure additions never bump. */
@@ -326,6 +327,8 @@ export const ROLE_SLOT: Readonly<Record<ModelRole, ModelSlotName>> = {
 /** General settings — app-level behavior. Version DISPLAY and plans login
  *  live outside the record (package.json / auth.json) by owner decision. */
 export interface GeneralSettings {
+	interfaceLanguage?: Language;
+	learningLanguage?: Language;
 	/** Automatic startup/24h update checks (default ON). Manual checks bypass this. */
 	autoUpdate?: boolean;
 }
@@ -502,7 +505,7 @@ export interface FactorySettings {
 
 export const FACTORY_SETTINGS: FactorySettings = {
 	version: CURRENT_SETTINGS_VERSION,
-	general: { autoUpdate: true },
+	general: { autoUpdate: true, interfaceLanguage: "en", learningLanguage: "en" },
 	dictation: { language: "en" },
 	appearance: {
 		mode: "dark",
@@ -546,6 +549,8 @@ const boolOrDrop = (value: unknown): boolean | undefined =>
 
 function sanitizeGeneral(raw: Record<string, unknown>): GeneralSettings {
 	const out: GeneralSettings = {};
+	if (isLanguage(raw.interfaceLanguage)) out.interfaceLanguage = raw.interfaceLanguage;
+	if (isLanguage(raw.learningLanguage)) out.learningLanguage = raw.learningLanguage;
 	const autoUpdate = boolOrDrop(raw.autoUpdate);
 	if (autoUpdate !== undefined) out.autoUpdate = autoUpdate;
 	return out;

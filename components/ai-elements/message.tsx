@@ -35,6 +35,7 @@ import {
 } from "streamdown";
 import { mdComponents } from "@/components/md-blocks";
 import { repairMathForDisplay, transformMathDelimiters } from "@/src/core";
+import { useI18n, I18nText } from "@/components/i18n";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
   from: LhViewMessage["role"];
@@ -264,11 +265,12 @@ export const MessageBranchPrevious = ({
   children,
   ...props
 }: MessageBranchPreviousProps) => {
+	const { t: tx } = useI18n();
   const { goToPrevious, totalBranches } = useMessageBranch();
 
   return (
     <Button
-      aria-label="Previous branch"
+      aria-label={tx("Previous branch")}
       disabled={totalBranches <= 1}
       onClick={goToPrevious}
       size="icon-sm"
@@ -287,11 +289,12 @@ export const MessageBranchNext = ({
   children,
   ...props
 }: MessageBranchNextProps) => {
+	const { t: tx } = useI18n();
   const { goToNext, totalBranches } = useMessageBranch();
 
   return (
     <Button
-      aria-label="Next branch"
+      aria-label={tx("Next branch")}
       disabled={totalBranches <= 1}
       onClick={goToNext}
       size="icon-sm"
@@ -320,7 +323,7 @@ export const MessageBranchPage = ({
       )}
       {...props}
     >
-      {currentBranch + 1} of {totalBranches}
+      {currentBranch + 1}{" "}<I18nText message="of" />{" "}{totalBranches}
     </ButtonGroupText>
   );
 };

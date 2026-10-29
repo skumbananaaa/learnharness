@@ -9,6 +9,7 @@ import { providerEventObserver, type ProviderEventObserver } from "../provider-e
 import type { PdfResult, PdfToolInput } from "../../core/contracts.ts";
 import { getHeadless, type HeadlessApi } from "./headless.ts";
 import { pdfExtract, pdfInfo, pdfProbe, pdfSearch, type PdfSearchHit } from "./pdf-ops.ts";
+import { learningLanguageInstructions, type Language } from "../../core/language.ts";
 
 /**
  * The pdf-reader sub-agent (sources v0, 2026-09): reads a learner-provided
@@ -64,6 +65,7 @@ const RENDER_BATCH_CAP = 6;
 const EXTRACT_CAP = 24_000;
 
 export interface PdfReaderOptions {
+	learningLanguage?: Language;
 	engine?: PiEngine;
 	abortSignal?: AbortSignal;
 	onUsage?: (usage: Usage) => void;
@@ -208,7 +210,7 @@ export async function runPdfReaderAgent(
 		for (let iteration = 0; iteration < maxIterations; iteration++) {
 			const result = await streamOnce(
 				engine,
-				INSTRUCTIONS,
+				INSTRUCTIONS + learningLanguageInstructions(opts.learningLanguage),
 				messages,
 				toolDeclarations,
 				sessionId,

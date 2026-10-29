@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useBackdropDismiss } from "@/components/backdrop-dismiss";
 import type { ChatDeleteMode, ChatListItem } from "@/src/core";
+import { useI18n } from "@/components/i18n";
 
 /** The graph-traces checkbox copy (owner, 2026-09-24 flow rework — was
  *  the delete-nodes option's body in the two-button design): the
@@ -155,16 +156,17 @@ export function DeleteSessionBody({
 	onClose: () => void;
 	onRun: () => void;
 }) {
+	const { t: tx } = useI18n();
 	return (
 		<div
 			role="dialog"
 			aria-modal="true"
-			aria-label="Delete session"
+			aria-label={tx("Delete session")}
 			data-testid="delete-session-dialog"
 			onClick={(e) => e.stopPropagation()}
 			className="w-[32rem] max-w-[calc(100vw-2rem)] rounded-xl border bg-card p-5 shadow-xl"
 		>
-			<h2 className="text-sm font-semibold text-destructive">Delete session?</h2>
+			<h2 className="text-sm font-semibold text-destructive">{tx("Delete session?")}</h2>
 			{/* The session name below the title in JetBrains Mono (owner,
 			    2026-09-24): no code-block chrome — the font already says
 			    code. Owner, 2026-10-13 polish: normal text-sm size (was
@@ -175,10 +177,7 @@ export function DeleteSessionBody({
 					{chat.title}
 				</code>
 			</div>
-			<p className="mt-2 text-sm text-muted-foreground">
-				This permanently removes the session — its messages, background jobs, and extraction records. Everything
-				it added to the graph stays unless you check below. This cannot be undone.
-			</p>
+			<p className="mt-2 text-sm text-muted-foreground">{tx("This permanently removes the session — its messages, background jobs, and extraction records. Everything it added to the graph stays unless you check below. This cannot be undone.")}</p>
 			<label
 				data-testid={TRACES_COPY.testid}
 				className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-lg border border-border/60 px-4 py-3"
@@ -209,9 +208,7 @@ export function DeleteSessionBody({
 						onClick={onRun}
 						disabled={busy}
 						className="ml-3 text-xs text-foreground underline-offset-2 hover:underline disabled:opacity-40"
-					>
-						Try again
-					</button>
+					>{tx("Try again")}</button>
 				</div>
 			)}
 			{/* The node dialog's exact bottom row: quiet Cancel, destructive
@@ -224,9 +221,7 @@ export function DeleteSessionBody({
 					onClick={onClose}
 					disabled={busy}
 					className="rounded-sm px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-				>
-					Cancel
-				</button>
+				>{tx("Cancel")}</button>
 				<button
 					type="button"
 					data-testid="delete-confirm"
@@ -234,7 +229,7 @@ export function DeleteSessionBody({
 					disabled={busy}
 					className="rounded-sm border border-destructive/50 bg-destructive/10 px-3 py-1.5 text-xs text-destructive transition-colors hover:bg-destructive/20 disabled:opacity-40"
 				>
-					{busy ? "Deleting…" : "Delete"}
+					{busy ? tx("Deleting…") : tx("Delete")}
 				</button>
 			</div>
 		</div>

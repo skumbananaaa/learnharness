@@ -92,6 +92,7 @@ function settlementErrorText(error: unknown): string {
 }
 
 const jobRunner = createJobRunner({
+	learningLanguage: () => effectiveSettings().general.learningLanguage,
 	chatStore: stores.chatStore,
 	jobStore: stores.jobStore,
 	deliver: deliverJobResult,
@@ -426,6 +427,7 @@ export async function handleChatInput(
 		restoreAutomatic: (automaticIds, retainedIds) => restoreUncommittedAutomatic(chatId, constructed, automaticIds, retainedIds),
 	});
 	const agentOpts: AgentBuildOptions = {
+		learningLanguage: effective.general.learningLanguage,
 		engine,
 		callPurpose,
 		requestCycle,

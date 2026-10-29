@@ -14,6 +14,7 @@ import {
 import type { PiEngine } from "../src/agent/models.ts";
 import type { AgentBuildOptions } from "../src/agent/teacher-agent.ts";
 import type { LhMessage } from "../src/core/native-messages.ts";
+import { learningLanguageInstructions } from "../src/core/language.ts";
 
 // Set the data/auth seams BEFORE importing app modules. Do not read local
 // keys, recordings, or learner sessions, even if a dev server is running.
@@ -105,7 +106,7 @@ describe("send_to_user model gate", () => {
 					assert.equal(output!.description, sendToUserTool.description);
 					assert.equal(typeof output!.prepareArguments, "function", "standard argument healing is wired");
 				}
-				assert.equal(agent.state.systemPrompt, composeInstructions(kind as keyof typeof factories));
+				assert.equal(agent.state.systemPrompt, composeInstructions(kind as keyof typeof factories) + learningLanguageInstructions());
 				assert.ok(!agent.state.systemPrompt.includes(SEND_TO_USER_TOOL), "no added prompt instructions");
 			}
 		});

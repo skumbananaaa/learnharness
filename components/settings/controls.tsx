@@ -11,6 +11,7 @@
 
 import { useState, type ComponentPropsWithRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/i18n";
 
 /** A section block: pronounced mono heading + content. */
 export function SettingsSection({
@@ -25,10 +26,11 @@ export function SettingsSection({
 	children: React.ReactNode;
 	testid?: string;
 }) {
+	const { t } = useI18n();
 	return (
 		<section data-testid={testid} className="px-6 py-5">
-			<h2 className="text-sm uppercase tracking-widest text-foreground">{title}</h2>
-			{hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+			<h2 className="text-sm uppercase tracking-widest text-foreground">{t(title)}</h2>
+			{hint && <p className="mt-1 text-xs text-muted-foreground">{t(hint)}</p>}
 			<div className="mt-4 flex flex-col gap-3">{children}</div>
 		</section>
 	);
@@ -45,9 +47,10 @@ export function SettingsGroup({
 	children: React.ReactNode;
 	testid?: string;
 }) {
+	const { t } = useI18n();
 	return (
 		<div data-testid={testid} className="mt-5 border-t border-border/60 pt-4 first:mt-0 first:border-t-0 first:pt-0">
-			<p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+			<p className="mb-2 text-xs uppercase tracking-widest text-muted-foreground">{t(label)}</p>
 			<div className="flex flex-col gap-2">{children}</div>
 		</div>
 	);
@@ -70,11 +73,12 @@ export function SettingsRow({
 	 *  control is inert (parent off, no file yet, …). */
 	dimmed?: boolean;
 }) {
+	const { t } = useI18n();
 	return (
 		<div data-testid={testid} className={cn("flex items-center justify-between gap-4 py-1", dimmed && "opacity-40")}>
 			<span className="min-w-0">
-				<span className="block font-prose text-(length:--lh-prose-size)">{label}</span>
-				{hint && <span className="block text-xs text-muted-foreground/70">{hint}</span>}
+				<span className="block font-prose text-(length:--lh-prose-size)">{t(label)}</span>
+				{hint && <span className="block text-xs text-muted-foreground/70">{typeof hint === "string" ? t(hint) : hint}</span>}
 			</span>
 			{children}
 		</div>
@@ -90,6 +94,7 @@ export function SettingsMenuTrigger({
 	value: string;
 	unavailable?: boolean;
 }) {
+	const { t } = useI18n();
 	return <button
 		type="button"
 		{...props}
@@ -100,7 +105,7 @@ export function SettingsMenuTrigger({
 			className,
 		)}
 	>
-		<span className="min-w-0 flex-1 truncate">{value}</span>
+		<span className="min-w-0 flex-1 truncate">{t(value)}</span>
 		<span aria-hidden className="text-muted-foreground">▾</span>
 	</button>;
 }
@@ -126,13 +131,14 @@ export function Toggle({
 	/** Optional native tooltip on the switch. */
 	title?: string;
 }) {
+	const { t } = useI18n();
 	return (
 		<button
 			type="button"
 			role="switch"
 			aria-checked={checked}
-			aria-label={label}
-			{...(title ? { title } : {})}
+			aria-label={t(label)}
+			{...(title ? { title: t(title) } : {})}
 			disabled={disabled}
 			data-testid={`toggle-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
 			onClick={() => onChange(!checked)}
@@ -185,10 +191,11 @@ export function ThinSelect({
 	testid?: string;
 	disabled?: boolean;
 }) {
+	const { t } = useI18n();
 	return (
 		<select
 			value={value}
-			aria-label={ariaLabel}
+			aria-label={t(ariaLabel)}
 			data-testid={testid}
 			disabled={disabled}
 			onChange={(e) => onChange(e.target.value)}
@@ -223,6 +230,7 @@ export function CommitInput({
 	testid?: string;
 	type?: "text" | "number";
 }) {
+	const { t } = useI18n();
 	// The draft exists only while editing; a blur shows the record's value
 	// again — commit-on-blur/Enter (owner ruling), the field honest about
 	// what landed.
@@ -232,8 +240,8 @@ export function CommitInput({
 		<input
 			type={type}
 			value={editing ? draft : value}
-			placeholder={placeholder}
-			aria-label={ariaLabel}
+			placeholder={placeholder === undefined ? undefined : t(placeholder)}
+			aria-label={t(ariaLabel)}
 			data-testid={testid}
 			onChange={(e) => {
 				setEditing(true);

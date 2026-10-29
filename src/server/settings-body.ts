@@ -28,6 +28,7 @@ import type {
 import { BACKGROUND_MODEL_ROLES, COMPACTION_THRESHOLD_FLOOR, CUSTOM_MODEL_PIN_FLOOR, EXTRACTION_CHUNK_TOKENS_FLOOR, MODEL_SLOTS } from "../core/settings.ts";
 import { WRITABLE_TOOL_KEYS } from "../core/pending.ts";
 import { isDictationLanguage } from "../core/dictation.ts";
+import { isLanguage } from "../core/language.ts";
 
 /** Parsed-or-rejected — `ok: false` carries the 400's error message. */
 export type SettingsBodyResult<T> =
@@ -83,6 +84,11 @@ export function parseGeneralSettingsBody(body: unknown): SettingsBodyResult<Gene
 	const raw = asRecord(body);
 	if (!raw) return { ok: false, error: "Invalid JSON body" };
 	const settings: GeneralSettings = {};
+	for (const field of ["interfaceLanguage", "learningLanguage"] as const) {
+		if (raw[field] === undefined) continue;
+		if (!isLanguage(raw[field])) return { ok: false, error: `${field} must be en or sv` };
+		settings[field] = raw[field];
+	}
 	if (raw.autoUpdate !== undefined) {
 		if (typeof raw.autoUpdate !== "boolean") {
 			return { ok: false, error: "autoUpdate must be a boolean" };

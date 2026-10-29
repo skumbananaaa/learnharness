@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { DumbbellIcon } from "lucide-react";
+import { useI18n } from "@/components/i18n";
 
 /** Home and the draft share one wrapping action row. Picker controls lead;
  * setup is centered only when it is the sole action. */
@@ -25,6 +26,7 @@ export function NodePickerControl({ count, onOpen, onClear }: {
 	onOpen?: () => void;
 	onClear?: () => void;
 }) {
+	const { t: tx } = useI18n();
 	return (
 		<div className="flex items-center gap-1.5">
 			<button
@@ -39,7 +41,7 @@ export function NodePickerControl({ count, onOpen, onClear }: {
 				}
 			>
 				<DumbbellIcon aria-hidden="true" className="size-3.5 text-muted-foreground" />
-				{count > 0 ? `${count} ${count === 1 ? "node" : "nodes"} selected` : "Pick nodes"}
+				{count > 0 ? tx(count === 1 ? "{count} node selected" : "{count} nodes selected", { count }) : tx("Pick nodes")}
 			</button>
 			{count > 0 && (
 				<button
@@ -47,9 +49,7 @@ export function NodePickerControl({ count, onOpen, onClear }: {
 					data-testid="practice-props-clear"
 					onClick={onClear}
 					className="cursor-pointer rounded-full px-2 py-1 font-ui text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-				>
-					Clear
-				</button>
+				>{tx("Clear")}</button>
 			)}
 		</div>
 	);

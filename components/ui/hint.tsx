@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useI18n } from "@/components/i18n"
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { bindingForAction, formatBinding, type KeyAction } from "@/src/core"
 
@@ -44,11 +45,12 @@ export function hintText(label: string, action?: KeyAction, binding?: string): s
 }
 
 export function Hint({ label, action, binding, side = "top", children }: HintProps) {
+	const { t } = useI18n();
 	return (
 		<TooltipProvider>
 			<Tooltip>
 				<TooltipTrigger asChild>{children}</TooltipTrigger>
-				<TooltipContent side={side}>{hintText(label, action, binding)}</TooltipContent>
+				<TooltipContent side={side}>{hintText(t(label), action, binding)}</TooltipContent>
 			</Tooltip>
 		</TooltipProvider>
 	)

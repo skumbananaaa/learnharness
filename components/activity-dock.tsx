@@ -7,6 +7,7 @@ import type { CallUsage, JobKind, JobRecord } from "@/src/core";
 import { isModelsRefusal, isProviderKeyRefusal, subscriptionLabel, subscriptionLabels } from "@/src/core";
 import { formatTokens, planCostLabel } from "@/components/usage-format";
 import { useServerEvent, useServerResync } from "@/components/server-events";
+import { useI18n } from "@/components/i18n";
 
 /**
  * THE BACKGROUND-AGENTS SECTION (owner, sidebar round — the successor of
@@ -289,6 +290,7 @@ const KIND_ICON: Record<JobKind, typeof SearchIcon> = {
 type AbortState = "pending" | "failed";
 
 export function ActivitySection({ feed: feedProp }: { feed?: ActivityFeed }) {
+	const { t: tx } = useI18n();
 	const ctx = useContext(ActivityContext);
 	const feed = feedProp ?? ctx.feed;
 	const refresh = ctx.refresh;
@@ -346,10 +348,8 @@ export function ActivitySection({ feed: feedProp }: { feed?: ActivityFeed }) {
 	return (
 		<section data-testid="activity-section" className="border-t border-border px-3 pb-3 pt-2">
 			<div className="mb-1 flex items-center gap-1.5 text-xs uppercase tracking-widest text-muted-foreground/70">
-				<ActivityIcon className="size-3" />
-				Background agents
-				{blobs.length > 0 && (
-					<span className="ml-auto tabular-nums" data-testid="activity-total-cost" title="Total running cost (inferred)">
+				<ActivityIcon className="size-3" />{tx("Background agents")}{blobs.length > 0 && (
+					<span className="ml-auto tabular-nums" data-testid="activity-total-cost" title={tx("Total running cost (inferred)")}>
 						{planCostLabel(totalCost, subscriptionLabels(blobs.map((blob) => blob.model)))}
 				</span>
 				)}
@@ -389,10 +389,11 @@ function ActivityBlobRow({
 	abortState: AbortState | undefined;
 	onAbort: () => void;
 }) {
+	const { t: tx } = useI18n();
 	const Icon = blob.process === "extraction" ? WaypointsIcon : (blob.jobKind && KIND_ICON[blob.jobKind]) || BotIcon;
 	const label =
 		blob.process === "extraction"
-			? `Extraction — ${blob.phase ?? "running"}`
+			? tx("Extraction — {phase}", { phase: tx(blob.phase ?? "running") })
 			: blob.jobKind === "research"
 				? "Researcher"
 				: blob.jobKind === "demo"
@@ -421,7 +422,7 @@ function ActivityBlobRow({
 							{blob.activity}
 						</span>
 					) : (
-						<span className="block truncate text-muted-foreground/80">{label}</span>
+						<span className="block truncate text-muted-foreground/80">{tx(label)}</span>
 					)}
 				</span>
 				<span className="flex shrink-0 items-center gap-2 tabular-nums text-muted-foreground">
@@ -437,8 +438,8 @@ function ActivityBlobRow({
 				data-testid="activity-abort"
 				onClick={onAbort}
 				disabled={abortState !== undefined}
-				title={abortState === "failed" ? "Abort failed — try again" : "End this background process"}
-				aria-label={`End ${label} in ${blob.title}`}
+				title={abortState === "failed" ? tx("Abort failed — try again") : tx("End this background process")}
+				aria-label={tx("End {agent} in {session}", { agent: tx(label), session: blob.title })}
 				className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground/70 transition-colors hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
 			>
 				<SquareIcon className="size-3" />
@@ -451,7 +452,7 @@ function ActivityBlobRow({
 				>
 					<div className="mb-1.5 flex items-center gap-2">
 						<Icon className="size-3.5 text-muted-foreground" />
-						<span className="font-medium">{label}</span>
+						<span className="font-medium">{tx(label)}</span>
 						<span className="ml-auto tabular-nums text-muted-foreground">
 							{formatElapsed(now - blob.startedAt)}
 						</span>
@@ -462,13 +463,13 @@ function ActivityBlobRow({
 						</div>
 						{blob.activity && <div className="break-words">{blob.activity}</div>}
 						<div className="flex justify-between gap-2">
-							<span>Cost</span>
+							<span>{tx("Cost")}</span>
 							<span className="tabular-nums text-card-foreground">
 								{planCostLabel(blob.cost, subscriptionLabel(blob.model))}
 							</span>
 						</div>
 						<div className="flex justify-between gap-2">
-							<span>Context</span>
+							<span>{tx("Context")}</span>
 							<span className="tabular-nums text-card-foreground" data-testid="activity-blob-context">
 								{blob.context === null
 									? "—"
@@ -477,19 +478,17 @@ function ActivityBlobRow({
 						</div>
 						{blob.model && (
 							<div className="flex justify-between gap-2">
-								<span>Model</span>
+								<span>{tx("Model")}</span>
 								<span className="truncate text-card-foreground">{blob.model}</span>
 							</div>
 						)}
 						{blob.steps !== undefined && (
 							<div className="flex justify-between gap-2">
-								<span>Steps</span>
+								<span>{tx("Steps")}</span>
 								<span className="tabular-nums text-card-foreground">{blob.steps}</span>
 							</div>
 						)}
-						<a href={`/chat/${blob.chatId}`} className="text-primary hover:underline">
-							Open session →
-						</a>
+						<a href={`/chat/${blob.chatId}`} className="text-primary hover:underline">{tx("Open session →")}</a>
 					</div>
 					<div className="mt-2 text-muted-foreground/80">
 					{abortState === "failed" && "Abort failed — try again"}
