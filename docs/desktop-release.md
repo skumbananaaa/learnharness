@@ -1,5 +1,16 @@
 # Desktop builds and releases
 
+## Fork updates
+
+This fork sets `lhUpdatesDisabled: true` in `package.json`. All builds made
+from it disable update checks, downloads, and installation, including manual
+checks and `LH_UPDATE_FEED` overrides. The settings UI hides update controls.
+Install newer custom versions manually using a newly built installer; the
+application data directory is separate from the installed program.
+
+This takes effect in newly built copies. Previously installed copies need
+one manual installation of the new build before this policy applies.
+
 ## Platforms
 
 | Platform | Build runner | Packages | In-app update |
@@ -36,6 +47,18 @@ npx electron-builder --win --x64 --publish never
 # On Linux:
 npx electron-builder --linux --x64 --publish never
 ```
+
+For builds containing local changes, add `--config.extraMetadata.lhLocalBuild=true`.
+This marks the installer and unpacked app as local builds and disables their
+updater, so upstream releases cannot replace those changes. For example:
+
+```sh
+npx electron-builder --win --x64 --publish never --config.extraMetadata.lhLocalBuild=true --config.directories.output=dist-local
+```
+
+Use a separate output directory when another build may still be running.
+The fork-wide `lhUpdatesDisabled` flag takes precedence, so omitting the local
+build flag does not re-enable updates in this fork.
 
 ## CI vs release
 

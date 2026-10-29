@@ -43,6 +43,13 @@ const path = require("node:path");
 const SIDEBAR_AUTOCLOSE = 928;
 
 const PRODUCT_NAME = "LearnHarness";
+// Explicit metadata on local artifacts, including their unpacked executables.
+// app.isPackaged alone also matches these builds, but they must not update
+// from the upstream release feed and replace local changes.
+const LOCAL_BUILD = require("../package.json").lhLocalBuild === true;
+// Fork builds are updated manually; neither settings nor a feed override
+// may re-enable the upstream updater.
+const UPDATES_DISABLED = require("../package.json").lhUpdatesDisabled === true;
 
 // APP NAME → userData (owner, 2026-10-10): the Application Support dir is
 // exactly "LearnHarness" in dev AND packaged. Packaged Electron would
@@ -494,6 +501,7 @@ function checkForUpdates({ manual = false } = {}) {
 }
 
 function installUpdateNow() {
+	if (!autoUpdater) return;
 	// Kill the server BEFORE the quit-and-install (see block comment).
 	try {
 		killServer();
@@ -504,8 +512,8 @@ function installUpdateNow() {
 }
 
 function setupAutoUpdater() {
-	if (!app.isPackaged) {
-		log("auto-update: dev build — updater disabled");
+	if (!app.isPackaged || LOCAL_BUILD || UPDATES_DISABLED) {
+		log(`auto-update: ${UPDATES_DISABLED ? "fork" : LOCAL_BUILD ? "local" : "dev"} build — updater disabled`);
 		reportUpdateStatus("disabled");
 		return;
 	}

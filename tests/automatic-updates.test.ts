@@ -13,7 +13,9 @@ const mainFile = fileURLToPath(new URL("../electron/main.cjs", import.meta.url))
 const mainSource = readFileSync(mainFile, "utf8");
 const mainRequire = createRequire(mainFile);
 
-function fixture({ packaged = true, updaterMissing = false } = {}) {
+function fixture({ packaged = true, updaterMissing = false, localBuild = false, updatesDisabled = false }: {
+	packaged?: boolean; updaterMissing?: boolean; localBuild?: unknown; updatesDisabled?: unknown;
+} = {}) {
 	let settings: string | Error = JSON.stringify({ version: 1, general: { autoUpdate: true } });
 	const settingsReads: string[] = [];
 	const order: string[] = [];
@@ -39,6 +41,7 @@ function fixture({ packaged = true, updaterMissing = false } = {}) {
 		quitAndInstall() { order.push("install"); }
 	}
 	const updater = new FakeUpdater();
+	let updaterLoads = 0;
 	class FakeWebContents extends EventEmitter {
 		mainFrame = { url: "http://127.0.0.1:9000/" };
 		messages: { channel: string; value: unknown }[] = [];
@@ -87,7 +90,9 @@ function fixture({ packaged = true, updaterMissing = false } = {}) {
 	const context = createContext({
 		require: (id: string) => {
 			if (id === "electron") return electron;
+			if (id === "../package.json") return { lhLocalBuild: localBuild, lhUpdatesDisabled: updatesDisabled };
 			if (id === "electron-updater") {
+				updaterLoads++;
 				if (updaterMissing) throw new Error("missing updater");
 				return { autoUpdater: updater };
 			}
@@ -110,6 +115,7 @@ function fixture({ packaged = true, updaterMissing = false } = {}) {
 	const run = (code: string) => runInContext(code, context);
 	return {
 		run, updater, windows, intervals, handles, settingsReads, order, app,
+		updaterLoads: () => updaterLoads,
 		setSettings: (value: unknown) => { settings = JSON.stringify(value); },
 		setSettingsFailure: (value: string | Error) => { settings = value; },
 		setEnumerationFailure: (value: boolean) => { enumerationFails = value; },
@@ -127,7 +133,7 @@ describe("automatic-update preference gate", () => {
 		f.run("setupAutoUpdater()");
 		await f.check();
 		assert.equal(f.updater.checks, 0);
-		assert.deepEqual(f.settingsReads, ["/fixture/custom-user-data-dev/data/settings.json"]);
+		assert.deepEqual(f.settingsReads, [path.join("/fixture/custom-user-data-dev", "data", "settings.json")]);
 		await f.check(true);
 		assert.equal(f.updater.checks, 1);
 		assert.equal(f.settingsReads.length, 1);
@@ -171,6 +177,56 @@ describe("automatic-update preference gate", () => {
 			assert.equal(f.state().status, "disabled");
 		});
 	}
+});
+
+describe("fork builds", () => {
+	it("disables all updater activity using the fork's committed package metadata", async () => {
+		const metadata = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+		assert.equal(metadata.lhUpdatesDisabled, true);
+		const f = fixture({ updatesDisabled: metadata.lhUpdatesDisabled });
+		f.setSettings({ general: { autoUpdate: true } });
+		await f.run('process.env.LH_UPDATE_FEED = "https://example.invalid/updates"; main()');
+		await f.check();
+		await f.check(true);
+		f.menuCheck();
+		for (const interval of f.intervals) interval.callback();
+		f.run("serverProcess = fixtureChild; installUpdateNow()");
+		assert.equal(f.updaterLoads(), 0);
+		assert.equal(f.updater.checks, 0);
+		assert.equal(f.updater.autoDownload, false);
+		assert.equal(f.updater.autoInstallOnAppQuit, false);
+		assert.equal(f.settingsReads.length, 0);
+		assert.deepEqual(f.order, [], "disabled installation must not stop the server");
+		assert.equal(f.state().status, "disabled");
+	});
+});
+
+describe("local packaged builds", () => {
+	it("does not load, check, download, or install upstream updates, even with automatic updates enabled", async () => {
+		const f = fixture({ localBuild: true });
+		f.setSettings({ general: { autoUpdate: true } });
+		f.run('process.env.LH_UPDATE_FEED = "https://example.invalid/updates"; setupAutoUpdater()');
+		await f.check();
+		await f.check(true);
+		f.run("serverProcess = fixtureChild; installUpdateNow()");
+		assert.equal(f.updaterLoads(), 0);
+		assert.equal(f.updater.checks, 0);
+		assert.equal(f.updater.autoDownload, false);
+		assert.equal(f.updater.autoInstallOnAppQuit, false);
+		assert.equal(f.settingsReads.length, 0);
+		assert.deepEqual(f.order, [], "a disabled install action must not stop the server");
+		assert.equal(f.state().status, "disabled");
+	});
+
+	it("leaves release builds updateable unless explicitly marked local", async () => {
+		for (const localBuild of [false, undefined, "true"]) {
+			const f = fixture({ localBuild });
+			f.run("setupAutoUpdater()");
+			await f.check();
+			assert.equal(f.updaterLoads(), 1);
+			assert.equal(f.updater.checks, 1);
+		}
+	});
 });
 
 describe("status observation never controls the updater", () => {
